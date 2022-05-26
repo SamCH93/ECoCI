@@ -1,0 +1,1291 @@
+%% Template for a scientific paper by Samuel Pawel
+%% Last modification: 17. December 2020
+\documentclass[a4paper, 11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphics}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb}
+\usepackage{doi} % automatic doi-links
+\usepackage[round]{natbib} % bibliography
+\usepackage{booktabs} % nicer tables
+\usepackage[title]{appendix} % better appendices
+\usepackage{nameref} % reference appendices with names
+\usepackage[onehalfspacing]{setspace} % more space
+\usepackage[labelfont=bf,font=small]{caption} % smaller captions
+\usepackage{todonotes}
+\newcommand{\EJ}[1]{\todo[inline, color=green]{  #1 }}
+\newcommand{\Samuel}[1]{\todo[inline, color=white]{Samuel:  #1 }}
+
+
+%% margins
+%% ----------------------------------------------------------------------------
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  total={170mm,257mm},
+  left=25mm,
+  right=25mm,
+  top=20mm,
+  bottom=20mm,
+}
+
+%% title, authors, affiliations, mail
+%% ----------------------------------------------------------------------------
+\newcommand\longtitle{Evidential Calibration of Confidence Intervals}
+\newcommand\shorttitle{Evidential Calibration of Confidence Intervals} % if longtitle too long, change here
+\newcommand\subtitle{}
+\newcommand\longauthors{Samuel Pawel\textsuperscript{*},
+Alexander Ly\textsuperscript{$\dagger$},
+Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
+\newcommand\shortauthors{S. Pawel, A. Ly, E.-J. Wagenmakers} % if longauthors too long, change here
+\newcommand\affiliation{
+  * Department of Biostatistics, University of Zurich \\
+  $\dagger$ Department of Psychological Methods, University of Amsterdam
+}
+\newcommand\mail{samuel.pawel@uzh.ch}
+\title{
+  \vspace{-2em}
+  \textbf{\longtitle} \\
+  \subtitle
+}
+\author{
+  \textbf{\longauthors} \\
+  \affiliation \\
+  E-mail: \href{mailto:\mail}{\mail}
+}
+\date{\today} %don't forget to hard-code date when submitting to arXiv!
+
+%% hyperref options
+%% ----------------------------------------------------------------------------
+\usepackage{hyperref}
+\hypersetup{
+  bookmarksopen=true,
+  breaklinks=true,
+  pdftitle={\shorttitle},
+  pdfauthor={\shortauthors},
+  pdfsubject={},
+  pdfkeywords={},
+  colorlinks=true,
+  linkcolor=RoyalPurple,
+  anchorcolor=black,
+  citecolor=MidnightBlue,
+  urlcolor=black,
+}
+
+%% Headers and footers
+%% ----------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{\shorttitle}
+\rhead{\shortauthors}
+
+%% custom commands
+%% ----------------------------------------------------------------------------
+\input{defs.tex}
+\begin{document}
+\maketitle
+
+%% Disclaimer that a preprint
+\begin{center}
+  {\color{red}This is a preprint which has not yet been peer reviewed.}
+\end{center}
+
+%% knitr options
+%% -----------------------------------------------------------------------------
+<< "main-setup", include = FALSE >>=
+## knitr options
+library(knitr)
+opts_chunk$set(fig.height = 4,
+               echo = FALSE,
+               warning = FALSE,
+               message = FALSE,
+               cache = FALSE,
+               eval = TRUE)
+
+## should sessionInfo be printed at the end?
+Reproducibility <- TRUE
+
+## Packages
+library(ciCalibrate) # support intervals
+library(lamW) # Lambert W function
+library(colorspace) # color palettes
+library(ggplot2) # plotting
+@
+
+%% Abstract
+%% -----------------------------------------------------------------------------
+\begin{center}
+  \begin{minipage}{14cm} {\small
+      \rule{\textwidth}{0.5pt} \\
+      {\centering \textbf{Abstract} \\
+        We present a novel and easy to use method for calibrating error-rate
+        based confidence intervals to evidence-based support intervals. Support
+        intervals are obtained from inverting Bayes factors based on the point
+        estimate and standard error of a parameter estimate. A $k$ support
+        interval can be interpreted such as ``the interval contains parameter
+        values under which the observed data are at least $k$ times more likely
+        than under a specified alternative hypothesis''.
+        % In contrast to confidence intervals, support intervals can separate parameter values which are supported by the data from parameters that are not contradicted by the data.
+        Support intervals depend on specification of an alternative hypothesis,
+        we present several types that allow data analyst to encode different
+        forms of external knowledge. We also show how specification of an
+        alternative hypothesis can, to some extent, be avoided by only
+        specifying a class of prior distributions for the parameter under the
+        alternative,
+        %class of alternatives
+        and then computing so-called minimum support intervals which have a
+        one-to-one mapping with confidence intervals. For the class of all
+        alternatives, the minimum support interval corresponds to the likelihood
+        ratio support interval %from \citet{Royall1997},
+        which is the narrowest support interval possible. Other classes lead to
+        wider and more conservative minimum support intervals that may better
+        reflect the available evidence. We also show how the sample size of a
+        future study can be determined based on the concept of support. Finally
+        we show how the universal bound for the type-I error rate of Bayes
+        factors leads to a bound for the coverage of support intervals, holding
+        even under sequential analyses with optional stopping. An application to
+        data from a clinical trial illustrates how the calibration to support
+        intervals can lead to more sensible inferences.
+        % support, not support, absence of support
+        % compatibility, incompatibility, absence of incompatibility
+      }
+      \rule{\textwidth}{0.4pt} \\
+      \textit{Keywords}: Bayes factor, Bayes factor bound, Bayesian hypothesis
+      testing, coverage, type-I error rate, minimum Bayes factor, support
+      interval, universal bound}
+\end{minipage}
+\end{center}
+
+\section{Introduction}
+A pervasive problem in data analysis is to draw inferences about
+unknown parameters of statistical models. For instance,
+data analysts are often interested in identifying a set of parameter values
+which are more compatible with the observed data compared to parameter
+values outside of the set.
+% However, as we will argue, most often methods
+% for answering completely different inferential questions are used for this
+% purpose. Here, we show
+%While in practice, data analysts often use confidence sets,
+Here, we focus on a particular method for doing so  ---the
+\emph{support set}--- representing the %a natural Bayesian and likelihoodist
+natural evidential answer to the problem
+\citep{Edwards1971, Royall1997}. The evidential paradigm defines
+statistical evidence via the \emph{Law of Likelihood} \citep{Hacking1965},
+that is, data constitute evidence for one hypothesis over an alternative
+hypothesis if the likelihood of the data under that hypothesis is larger
+than under the alternative. The likelihood ratio (or Bayes factor)
+measures the strength of evidence, and it plays also a central role in the
+construction of support sets, as we will explain the following.
+% Support sets
+% contain parameter values that receive a certain degree of statistical evidence
+% quantified via Bayes factors or likelihood ratios
+% \citep{Royall1997, Wagenmakers2020}. We quickly review their construction.
+
+
+Let $f(x \given \theta)$ denote the density (or probability mass)
+function of the observed data $x$. Let $\theta$ be an unknown parameter
+and denote by
+\begin{align}
+    \BF_{01}(x; \theta_0)
+    \label{eq:bf}
+    % = \frac{f(x\given\h{0}\colon \theta = \theta_0)}{
+    % f(x\given\h{1}\colon \theta \neq \theta_0)}
+    = \frac{f(x\given\h{0})}{f(x\given\h{1})}
+    = \frac{f(x\given\theta_0)}{\int f(x\given \theta) \,
+    f(\theta \given \h{1})\,\text{d}\theta}
+\end{align}
+the Bayes factor quantifying the strength of evidence which the
+observed data $x$ provide for the simple null hypothesis
+$\h{0} \colon \theta = \theta_0$ relative to a (possibly composite)
+alternative hypothesis
+$\h{1} \colon \theta \neq \theta_0$, with
+$f(x\given\h{1})$ the marginal density of $x$ obtained
+from integrating the density $f(x \given \theta)$ with respect to
+the prior density of the parameter $f(\theta \given \h{1})$ under
+the alternative $\h{1}$ \citep{Jeffreys1961, Kass1995}.
+A $k$ \emph{support set} for $\theta$ is then given by
+\begin{align}
+    \label{eq:ss}
+    \mbox{S}_k = \big\{\theta_0 : \BF_{01}(x; \theta_0) > k \big\},
+\end{align}
+that is, all parameter values for which the data are $k$ times more
+likely than under the alternative hypothesis $\h{1}$
+\citep{Wagenmakers2020}. A $k$ support set thus represents parameter
+values for which the data provide statistical evidence of at least level
+$k$.
+
+Figure~\ref{fig:example} illustrates the construction of a support set based on
+the (soon to be discussed) data from a clinical trial. Shown is the
+\emph{Bayes factor function}, \ie{} the Bayes
+factor~\eqref{eq:bf} as a function of the null value $\theta_0$. A $k$ support set
+is then given by the parameter values for which the Bayes factor function is larger
+than $k$.
+% This leads to an interval of parameter values which receive
+% at least $k$ times more support from the data than the alternative hypothesis.
+For instance, the $k=10$ support set contains parameter values that are strongly
+supported by the data, whereas the $k=1/10$ support set contains values that are
+at least not strongly contradicted.
+\begin{figure}[!htb]
+<< "figure-recovery", fig.height = 3.5 >>=
+## data from RECOVERY trial
+## https://www.nejm.org/doi/10.1056/NEJMoa2021436
+HR <- 0.83
+ciHR <- c(0.75, 0.93)
+logHR <- log(HR)
+selogHR <- diff(log(ciHR))/(2*qnorm(p = 0.975))
+
+## "power to detect a clinically relevant proportional reduction of 20% (an
+## absolute difference of 4 percentage points)"
+m <- log(0.8)
+v <- 4 ## unit information variance for a logHR
+nevents <- 4/selogHR^2 ## implicit event count
+
+## function to compute BF for different null values
+BFfun <- function(t0, x, se, m, v, log = FALSE) {
+    logBF <- 0.5*log(1 + v/se^2) - 0.5*((x - t0)^2/se^2 - (x - m)^2/(se^2 + v))
+    if (log == FALSE) return(exp(logBF))
+    else return(logBF)
+}
+
+## function to compute SI
+SIfun <- function(k, x, se, m, v) {
+    M <- sqrt(log(1 + v/se^2) + (x - m)^2/(se^2 + v) - 2*log(k))
+    x + c(-1, 1)*se*M
+}
+k <- c(1/10, 1, 10)
+siDF <- do.call("rbind", lapply(X = k, FUN = function(k) {
+    si <- SIfun(k = k, x = logHR, se = selogHR, m = m, v = v)
+    data.frame(k = k, lower = si[1], upper = si[2], est = logHR)
+}))
+
+## plot BF function and indicate support intervals by cut-offs
+logHRseq <- seq(log(0.65), log(1.05), length.out = 500)
+plotDF <- data.frame(logHR = logHRseq,
+                     HR = exp(logHRseq),
+                     BF = BFfun(t0 = logHRseq, x = logHR, se = selogHR,
+                                m = m, v = v, log = FALSE))
+library(ggplot2)
+bfBks <- c(1, 3, 10, 30, 100, 300, 1000)
+bfBks <- c(1, 10, 100, 1000)
+bfBks <- c(1/bfBks, bfBks)
+bfMax <- BFfun(t0 = logHR, x = logHR, se = selogHR, m = m, v = v)
+ggplot(data = plotDF, aes(x = logHR, y = BF)) +
+    geom_ribbon(aes(ymin = 0, ymax = BF), alpha = 0.05, fill = 1) +
+    geom_line(size = 0.3) +
+    geom_errorbarh(data = siDF, aes(xmin = lower, xmax = upper, y = k),
+                   height = 0.15, size = 0.3) +
+    ## geom_point(data = siDF, aes(x = lower, y = k)) +
+    ## geom_point(data = siDF, aes(x = upper, y = k)) +
+    annotate(geom = "point", x = logHR, y = bfMax, size = 0.7) +
+    ## annotate(geom = "curve", xend = logHR + 0.001, x = logHR + 0.1, yend = bfMax*1.1,
+    ##          y = bfMax*0.95, arrow = arrow(length = unit(0.015, "npc"),
+    ##                                       type = "closed"),
+    ##          angle = 90, size = 0.2, alpha = 0.7) +
+    ## annotate(geom = "curve", xend = logHR, x = logHR + 0.1, yend = bfMax,
+    ##          y = bfMax*0.95,
+    ##          angle = 90, size = 0.2, alpha = 0.7) +
+    ## annotate(geom = "text", x = logHR + 0.105, y = bfMax*0.85, size = 3,
+    ##          label = "'MLE' ~ hat(theta)", parse = TRUE) +
+        annotate(geom = "text", x = logHR, y = bfMax*1.5, size = 3,
+                 label = "'MLE' ~ hat(theta)", parse = TRUE) +
+    ## geom_text(data = siDF,
+    ##           aes(x = est, y = k*1.4,
+    ##               label = paste0("italic(k) == ", BayesRep::formatBF(BF = k),
+    ##                              "~ 'SI'")),
+    ##           parse = TRUE) +
+    geom_text(data = siDF,
+              aes(x = est, y = k*1.4,
+                  label = paste0("italic(k) == ", BayesRep::formatBF(BF = k))),
+              parse = TRUE) +
+    ## geom_point(data = siDF, aes(x = est, y = k)) +
+    scale_y_log10(breaks = bfBks, labels = BayesRep::formatBF(BF = bfBks)) +
+    coord_cartesian(ylim = c(1/100, 100)) +
+    labs(x = bquote("Log hazard ratio" ~ theta[scriptstyle("0")]),
+         y = bquote("BF"["01"] * "(data ; " * theta[scriptstyle("0")] * ")")) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())
+@
+    \caption{Application of Bayes factor functions and support intervals to data from
+    the RECOVERY trial \citep{RECOVERY2021}. The trial led to an age-adjusted log hazard
+    ratio of $\that = -0.19$ (95\% confidence interval from $-0.29$ to $-0.07$) for
+    Covid-19 mortality in hospitalized patients treated with dexamethasone compared to
+    usual care.
+    %standard error $\sigma = 0.05$.
+    The Bayes factor for testing $\h{0}\colon \theta = \theta_0$ versus
+    $\h{0}\colon \theta \neq \theta_0$ is shown as a function of the null value $\theta_0$.
+    A normal distribution centered around the clinically relevant proportional mortality reduction
+    $m = \log(0.8) = -0.22$ (as deemed by the trial steering committee) with unit-standard
+    deviation $s = 2$ \citep[Ch. 2.4.2]{Spiegelhalter2004} is used as a prior for $\theta$
+    under the alternative $\h{1}$. Different $k$ support intervals are shown.
+    }
+    \label{fig:example}
+\end{figure}
+
+
+The construction of support sets thus parallels the construction of frequentist
+confidence sets: A $(1 - \alpha)100\%$ confidence set corresponds to the set of
+parameter values which are not rejected by a null hypothesis significance test
+at level $\alpha$. It can equally be displayed and obtained from a
+so-called \emph{$p$-value function} \citep{Fraser2019, Rafi2020}.
+Despite these similarities, the interpretation of support and confidence sets
+is rather different; support sets contain parameter values for which there
+is at least a certain amount of statistical evidence, whereas confidence sets
+are defined through the long-run property of including the unknown parameter $\theta$
+with probability equal to their confidence level.
+While confidence sets are frequently interpreted to contain parameter values
+``compatible'' with the data, their definition is based on error-rates and
+their confidence level does not directly relate to the strength of compatibility.
+% In practice, the convention is to use the 95\% confidence level, but
+% this level does not have any justification in terms of representing a certain
+% degree of compatibility.
+% compatibility between parameter values and the data, it is unavoidable to
+% It may therefore happen that
+% the two types of sets result in different inferential conclusions for the
+% same data set.
+% For instance, in the example from Figure~\ref{fig:example}
+% the conventional 95\% confidence interval for the log hazard ratio $\theta$
+% ranges from $-0.29$ to $-0.07$. The 10 support interval ($-0.27$ to $-0.01$,)
+% is more narrow, while the 1 support interval ($-0.33$ to $-0.04$) is more wide.
+% So in this example the 95\% confidence interval inclu
+% indicating that also several parameter values outside the confidence interval
+% receive some support by the data. If one also want to include parameter values
+% that are not strongly contradicted by the data (\eg{} by using the 1/10 support
+% interval which ranges from $-0.37$ to $0.002$), even the value of $\theta = 0$
+% (indicating no treatment benefit) would be included in the support interval.
+
+In this article we shed light on the connection between support and confidence
+sets. Specifically, we provide methods for calibrating approximate confidence
+sets to  approximate support
+sets and vice versa in the important case when the data consists of the
+maximum likelihood estimate (MLE) of a univariate parameter $\theta$
+(Section~\ref{sec:SInormality}). Table~\ref{tab:summary} summarizes our main
+results which are easy to use formulas for computing support intervals that only
+require
+summary statistics typically reported in research articles, \eg{} point estimates,
+standard errors, or confidence intervals. Calibrating confidence to support
+intervals requires the specification of a prior distribution for $\theta$ under
+the alternative $\h{1}$, we compare several classes of distributions. We also
+show how bounding the evidence
+against the null hypothesis for a certain class of prior distributions leads
+to so-called \emph{minimum support sets} which have a one-to-one mapping with
+confidence sets and thus give them an evidential interpretation
+(Section~\ref{sec:SIbounds}). We then illustrate how the
+sample size of a future study can be determined based on support, which provides
+an alternative to the conventional approaches based on either power or precision
+(Section~\ref{sec:design}).
+Finally, we show how the universal
+bound %\citep{Royall1997}
+for the type-I error rate of Bayes factors can be used
+for bounding the coverage of support sets, even under sequential analyses
+with optional stopping (Section~\ref{sec:t1e}). To illustrate the methodology, we
+use data from the RECOVERY trial \citep{RECOVERY2021} as a running example.
+
+
+\begin{table}[!htb]
+% \setlength{\extrarowheight}{4pt}
+    \centering
+    \caption{Summary of confidence/credible intervals (CI),
+    support intervals (SI), and minimum support intervals (minSI) for an unknown
+    parameter $\theta$ based on a MLE $\that$ with standard error $\sigma$. All
+    intervals are of the form $\that \pm \sigma \times \mbox{M}$. To calibrate an interval
+    from type A to type B, first subtract $\that$ from both limits, multiply by
+    the ratio of the standard error multipliers $\mbox{M}_{\text{B}}/\mbox{M}_{\text{A}}$,
+    add again $\that$ to both limits. The standard error
+    multipliers $\mbox{M}$ depend on either the confidence/credible level $(1 - \alpha)$
+    or the support level $k$. For the support intervals, the standard error multipliers M
+    additionally depend on the parameters of the prior for $\theta$ under the
+    alternative: a mean $m$ and a standard deviation $s$ for the normal prior
+    $\theta \given \h{1} \sim \Nor(m, s^2)$, only a standard deviation $s$
+    for the local normal prior and the nonlocal normal moment prior (see Section~\ref{sec:local} and Section~\ref{sec:nonlocal}).
+    The quantile function of the standard normal distribution is denoted by $\Phi^{-1}(\cdot)$,
+    % $\lw{-1}(\cdot)$ denotes the branch of the Lambert W function \citep{Corless1996}
+    % that satisfies $\mbox{W}(y) \leq 1$ for $y \in [-1/e, 0)$. The respective (minimum)
+    % support intervals do only exist for support levels $k$ for which the
+    % standard error multipliers exist, \ie{} the respective term in the square root needs to be
+    % non-negative and/or the argument for $\lw{-1}(\cdot)$ needs to be in $[-1/e, 0)$.
+    $\lw{0}(\cdot)$ denotes the principal branch of the Lambert W function \citep{Corless1996},
+    and $\lw{-1}(\cdot)$ denotes the branch that satisfies $\mbox{W}(y) \leq 1$ for
+    $y \in [-1/e, 0)$. The respective (minimum) support intervals do only exist for support
+    levels $k$ for which the standard error multipliers exist, \ie{} the respective term in
+    the square root needs to be non-negative and/or the argument for $\lw{-1}(\cdot)$ needs
+    to be in $[-1/e, 0)$.
+    }
+    \label{tab:summary}
+    \begin{tabular}{lll}
+    \toprule
+    Interval type & %(Implied) prior for $\theta$ &
+    Standard error multiplier M \\
+    \midrule
+    $(1 - \alpha)100\%$ CI %& $\theta \sim \Nor(m, \infty)$
+    & $\Phi^{-1}(1 - \alpha/2)$ \\
+    % $(1 - \alpha)\%$ Credible & \theta \sim \Nor(m, s^2) & \\
+    $k$ $\mbox{SI}$ (normal prior) & %$\theta \sim \Nor(m, s^2), ~ m \neq \theta_0$ &
+    $\surd \{\log\left(1 + s^2/\sigma^2\right) + (\that - m)^2/(\sigma^2 + s^2) -
+    2\log k\}$ \\
+    $k$ $\mbox{SI}$ (local normal prior) & %$\theta \sim \Nor(\theta_0, s^2)$ &
+    $\surd [\{\log(1 + s^2/\sigma^{2}) - 2\log k \}
+    (1 + \sigma^{2}/s^2)]$ \\
+    $k$ $\mbox{SI}$ (nonlocal normal moment prior) &
+    $\surd ([2 \lw{0}\{(1 + s^2/\sigma^2)^{3/2}/(2 k e^{-1/2})\} - 1]\{1 + \sigma^2/s^2\})$ \\
+    $k$ $\mbox{minSI}$ (all priors) & $\surd (-2\log k)$ \\
+    $k$ $\mbox{minSI}$ (local normal priors) & $\surd \{-\lw{-1}(-k^2/ e)\}$\\
+    $k$ $\mbox{minSI}$ ($-e\, p\, \log p$) &
+    $\Phi^{-1}[1 - \exp\{\lw{-1}(-k/e)\}/2]$ \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Support intervals under normality}
+\label{sec:SInormality}
+Denote by $\that$ the MLE for a univariate unknown parameter $\theta$ based on the
+observed data, and let $\sigma$ be the (assumed to be known) standard error of
+$\that$. Assume that the usual regularity conditions for construction of a Wald-type
+confidence interval for $\theta$ are satisfied, so that an approximate normal
+likelihood $\that \given \theta \sim \Nor(\theta, \sigma^{2})$
+is justifiable. In this case, an approximate $(1 - \alpha)100\%$ confidence
+interval for $\theta$ is given by
+\begin{align}
+    \label{eq:ci}
+    \that \pm \sigma \times \Phi^{-1}(1 - \alpha/2)
+\end{align}
+with $\Phi^{-1}(\cdot)$ the quantile function of the standard normal distribution.
+The confidence level $(1 - \alpha)100\%$ represents the long run frequency with
+which the true parameter is included in the confidence interval (assuming that
+the sampling model is correct).
+Note that the interval~\eqref{eq:ci} also corresponds to the
+$(1 -\alpha)$ posterior credible interval based on an (improper) uniform
+prior for $\theta$, thus also representing the default interval estimate for $\theta$
+from a  Bayesian estimation perspective. We will now contrast the confidence
+interval~\eqref{eq:ci} to several types of support intervals.
+
+\subsection{Normal prior under the alternative}
+To construct a support interval for $\theta$, specification of a prior for
+$\theta$ under the alternative $\h{1}$ is required.
+Specifying a normal prior $\theta \given \h{1} \sim \Nor(m, s^2)$
+results in the Bayes factor
+\begin{align}
+    \label{eq:bf01}
+    \BF_{01}(\that; \theta_0)
+    = \sqrt{1 + s^2/\sigma^2} \, \exp\left[-\frac{1}{2}\left\{\frac{(\that -
+    \that_0)^2}{\sigma^2} - \frac{(\that - m)^2}{\sigma^2 + s^2}\right\} \right].
+\end{align}
+Now, fixing the Bayes factor~\eqref{eq:bf01} to $k$ and solving for $\theta_0$ leads
+to the $k$ support interval
+\begin{align}
+    \label{eq:si}
+    \that \pm \sigma \times
+    \sqrt{\log\left(1 + s^2/\sigma^2\right) + \frac{(\that - m)^2}{\sigma^2 + s^2} -
+    2\log k},
+\end{align}
+as also provided in the second row of Table~\ref{tab:summary}.
+
+Similar to the confidence interval~\eqref{eq:ci}, the support
+interval~\eqref{eq:si} is centered around the MLE $\that$. However, while
+the width of the confidence interval is only determined through the
+confidence level $(1 - \alpha)$ and standard error $\sigma$, the width of the support
+interval also depends on the specified prior for $\theta$ under $\h{1}$.
+Moreover, for $k > 1$ it may happen that the support interval does
+not exist, as the term below the square root in~\eqref{eq:si} may become negative for
+too large $k > 1$. This means that in order to find the desired level of support
+$k > 1$, the data have to be sufficiently informative (relative to the prior),
+\ie{} the standard error $\sigma$ has to be sufficiently small relative to the
+standard deviation of the prior $s$. In the following, we will discuss how different
+prior means $m$ and standard deviations $s$ affect the resulting support intervals.
+
+A point prior at the MLE ($m = \that$ and $s \downarrow 0$) produces the
+likelihood ratio support interval. This type is the narrowest
+support interval possible, and it only exists for $k \leq 1$
+as any other parameter value $\theta \neq \that$ receives less support than $\theta = \that$.
+In contrast,  for priors that become increasingly diffuse ($s \to \infty$),
+the $k \geq 1$ support  interval~\eqref{eq:si} extends to the entire real number line,
+indicating that all  values $\theta \in \R$ receive more support from the data
+than the diffuse alternative. This  particular behavior provides another perspective
+on the well-known  Jeffreys-Lindley paradox \citep{Ly2021}; the confidence
+interval from~\eqref{eq:ci} only spans a finite range around the MLE $\that$,
+so that the corresponding null hypothesis significance tests would reject
+the parameter values outside, whereas for the same values the Bayes factor
+would indicate evidence for the null hypothesis. Finally, centering
+the prior around the MLE
+($m = \that$) and setting the variance equal to the variance of one
+effective observation ($s^2 = n \times \sigma^2$ with $n$ the effective sample size),
+produces the support interval for Jeffreys's approximate Bayes factor
+\citep{Wagenmakers2022}. In this case, the standard error multiplier
+has a particularly simple form $\mbox{M} = \surd\{\log(1 + n) - 2 \log k\}$, showing
+that at least $n \geq k^2 - 1$ effective observations are required
+for the respective support interval with $k \geq 1$ to exist.
+
+\subsection{Local normal prior under the alternative}
+\label{sec:local}
+The objective Bayesian approach usually specifies \emph{local priors} under
+the alternative, \ie{} unimodal and symmetric priors centered around the
+null value $\theta_0$, for instance, the unit-information prior
+$\theta \given \h{1} \sim \Nor(m = \theta_0, s^2 = n \times \sigma^2)$
+from \citet{Kass1995b}. This leads to a slightly different expression for the
+Bayes factor
+\begin{align*}
+    \BF_{01}(\that ; \theta_0) = \sqrt{1 + s^2/\sigma^2}
+    \, \exp\left\{-\frac{1}{2} \, \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/s^2)} \right\}
+\end{align*}
+and the corresponding $k$ support interval
+\begin{align}
+    \label{eq:silocal}
+    \that \pm \sigma \times
+    \sqrt{\left\{\log(1 + s^2/\sigma^{2}) - 2\log k \right\}
+    (1 + \sigma^{2}/s^2)}
+\end{align}
+as also given in the third row of Table~\ref{tab:summary}.
+
+The interpretation of the support interval based on local normal
+priors~\eqref{eq:silocal} differs from the support interval based on normal
+priors~\eqref{eq:si} since the prior distribution of $\theta$ under the alternative
+hypothesis $\h{1}$ is different for each parameter value. As such, the likelihood
+of the data under the alternative represents a locally averaged likelihood for
+each parameter value.
+In the case of the unit-information prior support interval, the standard error
+multiplier $\mbox{M} = \surd[\{\log(1 + n) - 2 \log k\}(1 + 1/n)]$ is wider than
+for the Jeffreys's approximate Bayes factor by a factor of $\surd(1 + 1/n)$ but
+the condition $n \geq k^2 - 1$ for the existence of the $k \geq 1$ support interval
+is the same.
+
+\subsection{Nonlocal normal moment prior under the alternative}
+\label{sec:nonlocal}
+An alternative philosophy in Bayesian hypothesis testing is to specify so-called
+\emph{nonlocal priors} under the alternative. This class of priors is characterized
+by having no mass at the null-value $\theta_0$, thereby leading to a faster accumulation
+of evidence than local priors when the null hypothesis is actually true \citep{Johnson2010}.
+One popular type of nonlocal priors is given by \emph{normal moment priors}
+$\theta \sim \mathrm{NM}(m, s^2)$, which have density
+$f(\theta \given m, s^2) = \Nor(\theta \given m, s^2) \times (\theta - m)^2/s^2$
+where $\Nor(\cdot \given m, s^2)$ denotes the density function of a normal
+distribution with mean $m$ and variance $s^2$. The Bayes factor contrasting
+$\h{0}\colon \theta = \theta_0$ to $\h{1}\colon \theta \sim \mathrm{NM}(\theta_0, s^2)$
+is then given by
+\begin{align*}
+    \BF_{01}(\that ; \theta_0) =
+    (1 + s^2/\sigma^2)^{3/2} \,
+    \exp\left\{-\frac{1}{2} \, \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/s^2)} \right\}
+    \left(1 + \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/s^2)}\right)^{-1}
+\end{align*}
+from which the corresponding $k$ support interval can be derived to be
+\begin{align}
+    \label{eq:sinonlocal}
+    \that \pm \sigma \times
+    \sqrt{\left[2 \lw{0}\left\{\frac{(1 + s^2/\sigma^2)^{3/2} \sqrt{e}}{2 k}\right\} - 1\right]
+    \left(1 + \sigma^2/s^2\right)}
+\end{align}
+with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function
+\citep{Corless1996}. It is possible that
+the support interval~\eqref{eq:sinonlocal} does not exist, as for the other two
+types of support intervals. This happens when the Lambert W term is smaller
+than one so that the square root is undefined. One can see from the identity
+$\lw{0}(e) = 1$ that this situations occurs when
+$(1 + s^2/\sigma^2)^{3/2}/(2k) < \sqrt{e}$, meaning that the standard error
+$\sigma$ has to be sufficiently small relative to the prior scale
+$s$ parameter and the support level $k$, so that the interval exists.
+
+
+\subsection{Example RECOVERY trial}
+We now compute support intervals for the data from the RECOVERY trial
+\citep{RECOVERY2021}. The trial investigated the effect of dexamethasone on the
+mortality of hospitalized patients with Covid-19. This led to an age-adjusted
+log hazard ratio of $\that = -0.19$ with 95\% confidence interval from $-0.29$
+to $-0.97$ (see the first row in Figure~\ref{fig:comparison}), based on which the trial investigators concluded that dexamethasone
+resulted in lower Covid-19 mortality compared to usual care.
+
+The trial steering committee determined the sample size of the trial based on an assumed
+clinically relevant log hazard ratio of $\log 0.8 = -0.22$. This effect size
+can be used to inform the normal prior under the alternative $\h{1}$, \ie{}
+we specify the mean $m = -0.22$ along with the unit-information variance
+$s^2 = 4$ for a log hazard ratio \citep[chapter 2.4.2]{Spiegelhalter2004}.
+Likewise, we use the
+unit-information variance $s^2 = 4$ as the variance of the local normal prior.
+The scale parameter of the nonlocal moment prior $s$ is elicited with a similar
+approach as \citet{Pramanik2022}; The value is $s = 0.28$ selected so that
+90\% probability mass is assigned to log hazard ratios between $(\theta_0 - \log2, \theta_0)$
+and $(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double or half the hazard
+relative to the null value $\theta_0$.
+
+% One way to choose the scale parameter $s$ of the nonlocal prior is to fix
+% % the modes $\theta_0 \pm s \sqrt{2}$ or
+% two quantiles of the distribution so that plausible values of the effect size
+% receive a desired amount of probability. For instance, \citet{Pramanik2022} choose $s = 0.2$
+% so that about 85\% of the probability mass is assigned to effect sizes in $(0.2, 0.8)$
+% and $(-0.8, -0.2)$, representing the typical range of standardized mean difference effect
+% sizes in psychological research.
+
+\begin{figure}[!htb]
+<< "comparison", fig.height = 3.7 >>=
+## functions for different standard error multipliers
+CIseMconf <- function(alpha, conflevel = 1 - alpha/2) {
+    qnorm(p = (conflevel + 1)/2)
+}
+SIseMnormal <- function(k, x, se, m , v) {
+    sqrt(log(1 + v/se^2) + (x - m)^2/(se^2 + v) - 2*log(k))
+}
+SIseMnormalnonlocal <- function(k, x, se, m, ...) {
+    ## v <- abs(m)^2/2
+    v <- 0.28^2
+    sqrt((2*lamW::lambertW0(x = 0.5*exp(0.5)/k*(1 + v/se^2)^1.5) - 1)*
+            (1 + se^2/v))
+}
+SIseMnormallocal <- function(k, x, se, v, ...) {
+    sqrt(log(1 + v/se^2)- 2*log(k))*sqrt(1 + se^2/v)
+}
+mSIseMall <-  function(k, x, se, ...) {
+    sqrt(-2*log(k))
+}
+mSIseMnormallocal <-  function(k, x, se, ...) {
+    sqrt(-lamW::lambertWm1(x = -k^2/exp(1)))
+}
+mSIseMeplogp <-  function(k, x, se, ...) {
+    qnorm(p = 1 - exp(lamW::lambertWm1(-k/exp(1)))/2)
+}
+## SIseM <- list("SI normal" = SIseMnormal, "SI normal local" = SIseMnormallocal,
+##               "mSI all" = mSIseMall, "mSI normal local" = mSIseMnormallocal,
+##               "mSI -eplogp" = mSIseMeplogp)
+SIseM <- list("italic(k) ~ 'SI (normal prior)'" = SIseMnormal,
+              "italic(k) ~ 'SI (local normal prior)'" = SIseMnormallocal,
+              "italic(k) ~ 'SI (nonlocal normal moment prior)'" = SIseMnormalnonlocal,
+              "italic(k) ~ 'minSI (all priors)'" = mSIseMall,
+              "italic(k) ~ 'minSI (local normal priors)'" = mSIseMnormallocal,
+              "italic(k) ~ 'minSI ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'" = mSIseMeplogp)
+type <- names(SIseM)
+ciName <- "'95% CI'"
+typeLevels <- rev(c(ciName, type))
+
+## plot of different SI types for RECOVERY
+k <- c(1/10, 1/3, 1, 3, 10)
+plotDF <- do.call("rbind", lapply(X = k, FUN = function(k) {
+    M <- sapply(X = seq_along(SIseM), FUN = function(i) {
+        SIseM[[i]](k = k, x = logHR, se = selogHR, m = m, v = v)
+    })
+    data.frame(k = k, type = type, lower = logHR - selogHR*M,
+               upper = logHR + selogHR*M, est = logHR)
+}))
+plotDF$type <- ordered(x = plotDF$type, levels = typeLevels)
+ciDF <- data.frame(k = NA, type = ciName, lower = log(ciHR)[1],
+                   upper = log(ciHR[2]), est = logHR)
+ciDF$type <-  ordered(x = ciDF$type, levels = typeLevels)
+allDF <- rbind(ciDF, plotDF)
+
+## nice colors
+plotDF$kfac <- factor(plotDF$k, levels = k, labels = BayesRep::formatBF(BF = k))
+library(colorspace)
+cols <- sequential_hcl(n = (length(k)+2), palette = "Grays", rev = TRUE)[2:(length(k)+1)]
+names(cols) <- levels(plotDF$kfac)
+
+cols <- diverging_hcl(n = length(k), palette = "Blue-Red", rev = TRUE)
+cols <- divergingx_hcl(n = length(k), palette = "Zissou 1", rev = TRUE)
+names(cols) <- levels(plotDF$kfac)
+
+
+
+
+## base plot
+plotA <- ggplot() +
+    geom_point(data = allDF, aes(x = type, y = est), size = 0, alpha = 0) +
+    geom_errorbar(data = ciDF, aes(x = type, ymin = lower, ymax = upper),
+                  col = 1, alpha = 1, width = 0.35, size = 0.4)
+    ## geom_hline(yintercept = 0, lty = 2, alpha = 0.1)
+## draw SIs on top of each other
+for (i in seq_along(k)) {
+    ki <- k[i]
+    dat <- subset(plotDF, k == ki)
+    plotA <- plotA +
+        geom_errorbar(data = dat, key_glyph = "rect",  alpha = 1,
+                      size = 0.4 + i*0.02,
+                      aes(x = type, ymin = lower, ymax = upper, color = kfac),
+                      width = 0.35)
+}
+plotA +
+    geom_point(data = ciDF,
+               aes(x = type, y = est), size = 0.9, color = 1, alpha = 1) +
+               #shape = "square") +
+    labs(x = "", y = bquote("Log hazard ratio" ~ theta),
+         color = bquote("Support level" ~ italic(k))) +
+    scale_x_discrete(labels = function(l) parse(text = l)) +
+    scale_color_manual(values = cols) +
+    coord_flip() +
+    theme_bw() +
+    theme(legend.position = "top",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.y = element_text(hjust = 0))
+@
+\caption{Comparison of different support intervals for data from RECOVERY trial.
+  The normal prior is centered around the clinically relevant proportional
+  mortality reduction $m = \log(0.8) = -0.22$ (as deemed by the trial steering
+  committee) and has unit-standard deviation $s = 2$. The local normal prior
+  also has unit-standard deviation of $s = 2$. The scale parameter of the
+  nonlocal normal moment prior is $s = 0.28$ so that 90\% of the probability is
+  assigned to log hazard ratios between $(\theta_0 - \log2, \theta_0)$ and
+  $(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double
+  or half the mortality hazards relative to the null value $\theta_0$.}
+    \label{fig:comparison}
+\end{figure}
+
+Figure~\ref{fig:comparison} shows the corresponding $k$ support intervals for different
+values of $k$. The support intervals based on normal (second row) and local normal
+prior (third row) mostly coincide for all considered support levels $k$.
+% This is because the mean $m = -0.22$ of the prior under $\h{1}$ is close to the
+% observed effect estimate $\that = -0.19$, so that
+The $k = 10$ support intervals (blue) from both types indicate that log hazard ratios between
+$-0.27$ and $-0.10$ receive strong support from the data compared to alternative parameter
+values. In contrast, the $k = 10$ support interval (blue) based on the nonlocal normal moment prior (fourth row)
+is slightly wider, indicating that values between $-0.28$ and $-0.09$ are strongly
+supported by the data. For smaller support levels ($k < 10$) this trend reverses
+and the normal and local normal prior support intervals are wider than the one
+based on the nonlocal normal prior. Finally, by assessing whether a $k$ support
+interval includes a certain null value, one can quickly check whether the respective
+Bayes factor is smaller than $k$, similarly to the relationship between
+confidence intervals and $p$-values. For instance, one can immediately see that
+the Bayes factor based on nonlocal moment priors indicates strong evidence
+($\BF_{01} < 1/10$) against $\h{0}\colon\theta = 0$ as the value is not included
+in the interval, whereas this is not the case for the Bayes factors based on normal
+and local normal priors.
+
+
+
+\section{Support intervals based on Bayes factor bounds}
+\label{sec:SIbounds}
+In some situations it is clear which prior for $\theta$ should be chosen under
+the alternative $\h{1}$, \eg{} when an MLE from a previous data set is
+available. In other situations it is less clear and different priors may
+produce drastically different results. To alleviate the Bayes factor's sensitivity
+to the prior in the latter situation, several authors have proposed to instead
+specify a class of prior  distributions and determine the smallest possible Bayes
+factor among it \citep{Edwards1963, Berger1987, Selke2001, Held2018}. Such a
+\emph{minimum Bayes factor} provides an objective lower
+bound on the Bayes factor, and it can also be used for obtaining a \emph{minimum
+  support set}. Specifically, a $k$ minimum support set is given by
+\begin{align}
+  \mbox{minS}_k =
+  \left\{\theta_0 : \minBF_{01}(x ; \theta_0) \geq k \right\},
+\end{align}
+where $\minBF_{01}(x ; \theta_0)$ is the smallest possible Bayes factor for
+testing $\h{0}\colon \theta = \theta_0$ versus
+$\h{1}\colon \theta \neq \theta_0$ that can be
+obtained from a class of distributions under the alternative. Minimum support intervals
+thus provide a Bayes/non-Bayes compromise \citep{Good1992} as they do not require
+specification of a specific prior distribution but still allow for an evidential
+interpretation of the resulting interval.
+
+One property of minimum Bayes factors is that they can only be used to asses the
+maximum evidence \emph{against} the null hypothesis but not for it. Minimum support
+sets inherit this property, meaning that
+they can only be obtained for support levels $k \leq 1$. For instance a $k = 1/3$ minimum
+support set includes the parameter values under which the observed data are
+\emph{at most} $3$ times less likely compared to under all priors from the specified
+class of alternative. Being unable to obtain support intervals with $k > 1$ is the
+price that needs to be paid for having to only specify a class of prior distributions
+but not a specific prior itself.
+We will now discuss minimum support intervals from several important classes of distributions.
+
+\subsection{Class of all distributions under the alternative}
+
+Among the class of all possible priors under
+$\h{1}$, the prior which is most favorable towards the alternative is a point
+mass at the observed effect estimate $\h{1}\colon \theta = \that$ \citep{Edwards1963}.
+The resulting minimum Bayes factor is given by
+\begin{align}
+    \label{eq:minBFsimple}
+  \minBF_{01}(\that ; \theta_0) =
+  \exp\left\{-\frac{1}{2}  \frac{(\that - \theta_0)^{2}}{\sigma^{2}}\right\},
+\end{align}
+which equals the standard likelihood ratio test statistic.
+Inverting~\eqref{eq:minBFsimple} for $\theta_0$ leads to the $k$ minimum support
+interval
+\begin{align}
+    \label{eq:sisimple}
+  \that \pm \sigma \times \sqrt{-2\log k},
+\end{align}
+as also provided in Table~\eqref{tab:summary}. For each $k$, the
+support interval~\eqref{eq:sisimple}
+%becomes a single point at $\theta = \that$.
+is the narrowest support interval possible among all possible support intervals.
+
+
+
+
+\subsection{Class of local normal alternatives}
+
+When the class of alternatives is given by normal distributions centered around
+the null value $\theta_0$, the minimum Bayes factor is given by
+\begin{align}
+  \minBF_{01}(\that ; \theta_0) =
+  \begin{cases}
+    \dfrac{|\that - \theta_0|}{\sigma} \exp\left\{-\dfrac{(\that -
+    \theta_0)^2}{2\sigma^{2}}\right\}  \sqrt{e}
+    & ~ \text{if} ~ \dfrac{|\that - \theta_0|}{\sigma} > 1 \\
+    1 & ~ \text{else}
+  \end{cases}
+  \label{eq:minBFnorm}
+\end{align}
+as first shown by \citet{Edwards1963}.
+Inversion of~\eqref{eq:minBFnorm} leads to the $k$ minimum support interval
+\begin{align}
+  \that \pm \sigma \times \sqrt{-\lw{-1}(-k^2/e)},
+\end{align}
+with $\lw{-1}(\cdot)$ the branch of the Lambert W function that satisfies
+$\mbox{W}(y) \leq -1$ for $y \in [-e^{-1}, 0)$ \citep{Corless1996}. For $k = 1$,
+the standard error multiplier becomes $\mbox{M} = \sqrt{-\lw{-1}(-1/e)} = 1$.
+Hence, all parameter values within one standard error around
+the observed MLE $\that$ are equally or more likely than under any local normal
+alternative.
+
+\subsection{Class of \textit{p}-based alternatives}
+
+\citet{Selke2001} proposed a minimum Bayes factor where the data are summarized
+through a $p$-value. The idea is that under the null hypothesis
+$\h{0}\colon \theta = \theta_0$, a $p$-value should be uniformly distributed,
+whereas under the alternative it should have
+a monotonically decreasing density characterized by the class of
+Beta($\xi, 1$) distributions (with $\xi \geq 1$). This leads to well-known
+``$-ep \log p$'' minimum Bayes factor
+\begin{align}
+  \minBF_{01}(p ; \theta_0) =
+  \begin{cases}
+    - e  p  \log p
+    & ~ \text{if} ~ p \leq e^{-1} \\
+    1 & ~ \text{else}
+  \end{cases}
+  \label{eq:minBFeplog}
+\end{align}
+with $p = 2\{1 - \Phi(|\that - \theta_0|/\sigma)\}$.
+Equating~\eqref{eq:minBFeplog} to $k$ and solving for $\theta_0$, leads to
+the $k$ minimum support interval
+\begin{align}
+  \that \pm \sigma \times \Phi^{-1}\left[1 -
+  \frac{\exp\left\{\lw{-1}(-k/e)\right\}}{2}\right].
+\end{align}
+For $k = 1$, the standard error multiplier is given by
+$\mbox{M} = \Phi^{-1}[1 - \exp\{\lw{-1}(-1/e)\}/2] =
+\Phi^{-1}[1 - 1/(2e)] \approx 0.90$, so the $k = 1$ minimum support interval
+is just slightly tighter than the one based on local normal alternatives.
+
+\subsection{Example RECOVERY trial (continued)}
+
+The three bottom rows in Figure~\ref{fig:comparison} show different types of $
+k$ minimum support intervals computed for the data from the RECOVERY trial.
+Since minimum support intervals only exist for $k \leq 1$, only such support
+levels are shown.
+% , whereas for the standard support intervals also support
+% levels $k > 1$ are shown.
+It is visible that the (yellow) $k=1$ minimum support interval for the class of
+all priors (fifth row) is just a point at the observed effect estimate
+$\that = -0.19$.
+In contrast, the (yellow)  $k = 1$ minimum support intervals based on normal local
+priors (sixth row) and the $-ep \log p$ calibration (last row) span about
+one standard error around the effect estimate. Also for $k = 1/3$ (orange)
+and $k = 1/10$ (red), the minimum support interval based on the class of all priors
+is much more narrow than the ones based on local normal and $-ep\log p$, yet all of
+them are more narrow than the ordinary support intervals. This illustrates that
+similarly as Bayes factor bounds which give an anti-conservative
+quantification of evidence, minimum support intervals give an
+anti-conservative assessment of support.
+
+\subsection{Mapping between confidence and minimum support levels}
+For all types of minimum support intervals discussed so far, there
+is a one-to-one mapping between their support level $k$ and the
+confidence level $(1 - \alpha)\%$ of the standard Wald-type confidence
+interval~\eqref{eq:ci}, see Figure~\ref{fig:mappingCIk}.
+The conventional default level of 95\% corresponds to a $k = 1/6.8$ support
+level for the class of all priors under the alternative, whereas it corresponds to
+a $k = 1/2.1$ and $k = 1/2.5$ support level for the $-ep\log p$ and
+local normal priors calibrations, respectively. Conversely,
+in order to obtain a $k = 1/10$ minimum support interval, one could
+take the $96.8$\% confidence interval for the class of all priors,
+whereas one could to take the $99.25$\% and $99.43$\% confidence intervals
+for the $-ep\log p$ and local normal priors calibrations, respectively.
+This mapping parallels the mapping between Bayes factor bounds and
+$p$-values \citep{Held2018}.
+
+
+\begin{figure}[!htb]
+<< "mapping-conf-level-minimum-k", fig.height = 4 >>=
+## mapping between confidence level and k such that same standard error multiplier
+conf2kall <- function(conf) {
+    exp(-0.5*qnorm(p = (1 + conf)*0.5)^2)
+}
+conf2knormallocal <- function(conf) {
+    z <- qnorm(p = (1 + conf)*0.5)
+    abs(z)*exp(-0.5*(z^2 - 1))
+}
+conf2keplogp <- function(conf) {
+    k <- -exp(1)*log(1 - conf)*(1 - conf)
+    return(k)
+}
+conf2k <- list("italic(k) ~ 'minimum support (all priors)'" = conf2kall,
+               "italic(k) ~ 'minimum support (local normal priors)'" = conf2knormallocal,
+               "italic(k) ~ 'minimum support ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'" = conf2keplogp)
+
+## computing mapping for a grid of confidence levels
+confseq <- seq(0.8, 0.9999, length.out = 2000)
+mseq <- qnorm(p = 0.5*(1 + confseq))
+plotDF <- do.call("rbind", lapply(X = seq_along(conf2k), FUN = function(i) {
+    f <- conf2k[[i]]
+    k <- f(conf = confseq)
+    data.frame(type = names(conf2k)[i], conflevel = confseq, m = mseq, k = k)
+}))
+plotDF$type <- factor(x = plotDF$type, levels = names(conf2k))
+
+## plotting conflevel vs support level
+bfBks <- c(1/300, 1/100, 1/30, 1/10, 1/3, 1)
+confbks <- seq(90, 99, 1)
+ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type)) +
+    geom_line(alpha = 0.8, size = 0.7) +
+    ## scale_x_continuous(sec.axis = sec_axis(~ conf2z(./100), name = "SE multiplier",
+    ##                                        breaks = c(1.7, 1.8, 2, 2.3, 3))) +
+    scale_x_continuous(breaks = confbks) +
+    scale_y_log10(breaks = bfBks, labels = BayesRep::formatBF(BF = bfBks),
+                  expand = c(0, 0)) +
+    expand_limits(y = 1.5) +
+    coord_cartesian(xlim = c(89.7, 99.3), ylim = c(1/250, 1.3)) +
+    labs(y = bquote("Support level" ~ italic(k)),
+         x = bquote("Confidence level" ~ (1 - alpha)*"%"),
+         color = "") +
+    scale_color_brewer(palette = "Dark2", labels = scales::parse_format()) +
+    theme_bw() +
+    theme(legend.position = "top", panel.grid.minor = element_blank(),
+          legend.text = element_text(size = 7.5))
+
+## which k minimum SI correspond to 95% CI?
+## sapply(X = conf2k, FUN = function(f) f(0.95))
+
+## ## which % CI need to take to obtain 1/10 minimum SI
+## mSI <- list("all" = mSIseMall, "normallocal" = mSIseMnormallocal, "-eplogp" = mSIseMeplogp)
+## 100*sapply(X = mSI, FUN = function(f) 1 - 2*pnorm(q = f(1/10, NA, NA), lower.tail = FALSE))
+@
+\caption{Mapping between confidence level $(1 - \alpha)\%$ and support level $k$
+  for different types of minimum support intervals.}
+    \label{fig:mappingCIk}
+\end{figure}
+
+\section{Design of new studies based on support}
+\label{sec:design}
+The classical way for determining the sample size of a new study is based on either
+(i) a specified power in a future test or (ii) a desired precision of a future
+confidence/credible interval.  Here, we provide an alternative where the sample
+size is determined to have a desired level of support in the future study.
+
+Assume we want to conduct a study and analyze the resulting MLE $\that$ using the
+support interval based on a normal prior~\eqref{eq:si}. Further assume
+that we either specify a reasonable prior from existing knowledge or use a default prior, \eg{} the
+prior for Jeffreys's approximate Bayes factor. The goal is now to determine the sample
+size $n$ such that we can identify the parameter values which are strongly supported
+by the future data, for instance, with a support level $k = 10$ representing ``strong''
+support in the classification from \citet{Jeffreys1961}. In order for the $k > 1$ support
+interval~\eqref{eq:si} to exist, the standard error $\sigma$ of the MLE $\that$ needs
+to be sufficiently small so that the term in the square root becomes non-negative, \ie{}
+it must hold that
+\begin{align}
+    \label{eq:existence}
+    \log(1 + s^2/\sigma^2) + \frac{(\that - m)^2}{\sigma^2 + s^2} \geq 2 \log k.
+\end{align}
+The sample size $n$ can now be determined such that the standard error $\sigma$ is
+small enough for~\eqref{eq:existence} to hold. The resulting sample size then guarantees
+that parameter values with the desired level of support will be identified.
+In general, this needs to be done numerically, but for the Jeffrey's approximate
+Bayes factor prior ($m = \that$ and $s^2 = n \sigma^2$), the simple expression
+$n \geq k^2 - 1$ mentioned earlier exists. For instance, if we want a $k = 10$
+support interval to exist, we must take at least $10^2 - 1 = 99$ samples.
+
+While the previously described approach guarantees that a $k > 1$ support interval exists
+for at least one parameter value $\theta$, one may want to guarantee that the
+resulting $k$ support interval will span a desired width
+\begin{align}
+    \label{eq:width}
+    w_k = 2 \sigma \times \mbox{M}_k,
+\end{align}
+with $\mbox{M}_k$ the standard error multiplier of a $k$ support interval. In general,
+numerical methods are required for computing the $n$ such that~\eqref{eq:width} is
+satisfied, yet again for the support interval based on Jeffrey's approximate Bayes factor
+%($\mbox{M}_k = \{\log(1 + n) - 2\log k\}$)
+there are explicit solutions available
+\begin{align}
+    \label{eq:nw}
+    n = k^2 \, \exp\left\{-\lw{}\left(-\frac{k^2 w_k^2}{4 \lambda^2}\right)\right\}
+\end{align}
+with $\lambda^2$ the variance of one (effective) observation and assuming
+$\log(1 + n)/\log(n) \approx 1$. From~\eqref{eq:nw} two things are apparent:
+(i) the argument to $\mbox{W}(\cdot)$ has to be larger than $-1/e$ for the function value
+to be defined, meaning that the possible width is limited by $w_k \leq (4\lambda^2)/k^2$,
+(ii) since the argument to $\mbox{W}(\cdot)$ is negative, there are always two
+solutions given by the two real branches of the Lambert $\mbox{W}$ function,
+if any exist at all. For instance, for a unit-information standard deviation
+$\lambda = 2$, a support level $k = 10$, and a desired width $w_k = 0.2$,
+equation~\eqref{eq:nw} leads to the sample sizes $n_1 = 143$ and $n_2 = 862$
+(when rounded to the next larger integer). Both lead to $k=10$ support interval
+spanning the desired width, yet the Bayes factor function for the larger sample
+size is more peaked and can identify parameter values with more support than for
+the smaller sample size.
+
+
+\section{Error control via the universal bound}
+\label{sec:t1e}
+The universal bound (Appendix~\ref{app:universalBound}) ensures that for
+$k \leq 1$ and when the null hypothesis $\h{0} \colon \theta = \theta_0$ is
+true, the probability for finding evidence at level $k$ for $\h{0}$ is smaller
+than $k$, that is
+\begin{align}
+    \label{eq:ubound}
+  \P\left\{\BF_{01}(x ; \theta_0) \leq k \given \h{0}\right\} \leq k
+\end{align}
+for any prior of $\theta$ under the alternative $\h{1}$. Remarkably, the universal
+bound is also valid under sequential analyses and even when the data analyst
+actively seeks misleading evidence \citep{Robbins1970}. In contrast, frequentist
+tests and confidence sets typically have to be adjusted for sequential
+analyses to guarantee appropriate error rates, and the theory and applicability
+can become quite involved.
+
+The universal bound can also be used to bound the coverage of a support
+set: Assume there is a true parameter $\theta = \theta_*$. For any alternative
+hypothesis $\h{1}$, the coverage of the corresponding $k$ support set $\mbox{S}_k$ is
+bounded by
+\begin{align}
+    \P\left(\mbox{S}_k \ni \theta_* \given \theta = \theta_*\right)
+    &= \P\left\{\BF_{01}(x \given \theta_*) > k \given \theta = \theta_*\right\}  \nonumber \\
+    &= 1 -  \P\left\{\BF_{01}(x \given \theta_*) \leq k \given \theta = \theta_*\right\} \nonumber \\
+    &\geq 1 - k
+    \label{eq:covbound}
+\end{align}
+where the first equality follows from the definition of a $k$ support
+set~\eqref{eq:ss}, whereas the inequality follows from the universal
+bound~\eqref{eq:ubound}. This means that any $k$ support set with $k \leq 1$
+is also a valid $(1 - k)100\%$ confidence set (provided the likelihood
+for the data is correctly specified).
+
+For the case of a univariate parameter $\theta$ as considered earlier,
+construction of $(1 - k)\%$ approximate confidence interval via the the normal prior support
+interval from~\eqref{eq:si} corresponds to the proposal by \citet{Pace2019}. They studied
+this particular case in detail and gave also frequentist motivations for the prior
+distributions interpreting them as weighting functions. Moreover, they found
+that the method also is applicable to estimates from marginal, conditional, and profile
+likelihoods, and that the coverage of the intervals is controlled even under slight model
+misspecifications. We refer to \citet{Pace2019} for further details.
+
+A $(1 - k)\%$ confidence interval obtained from a $k$ support interval will be wider
+than the corresponding (unadjusted) $(1 - k)\%$ Wald-type confidence interval. This
+is the price that has to be paid for more flexible error control.
+We are not claiming that support intervals are more efficiently
+controlling error rates compared to other types of adjustment methods, but
+they are practically much easier to implement; support intervals do not require specification
+of the number of interim analyses beforehand (\eg{} as for Pocock or O'Brien
+Fleming corrections) or the recalculation of the alpha level when an interim
+analysis is performed (\eg{} as for alpha spending functions). This makes
+support intervals an appropriate tool when evidence quantification is the
+highest priority for data analysts, with error control as a secondary objective.
+% the prior
+% distribution of the parameter $\theta$ under the alternative $\h{1}$ provides a means
+% to the change width of the support interval as universal bound is valid for
+% all prior distributions under $\h{1}$.
+% \Samuel{expand here}
+% The minimum support interval
+% based on the class of all possible prior distributions, \ie{} the likelihood ratio
+% interval, is the narrowest possible interval and may thus be the optimal choice in terms
+% of width and coverage. However, from an evidential perspective this choice may not be
+% desirable since it represents the most blatantly biased prior for $\theta$.
+% Nevertheless, due to the one-to-one mapping between minimum support intervals
+% and confidence intervals, an always valid 95\% confidence interval can be obtained
+% by computing the 1/20 minimum support interval which corresponds to a 9X\%
+% confidence interval.
+
+Finally, it must be noted that the coverage bound~\eqref{eq:covbound} only holds for support intervals
+but not for minimum support intervals. This is because of the one-to-one correspondence
+of minimum support intervals and confidence intervals. Since the coverage of
+confidence intervals is not controlled when repeated looks at accumulating data are performed,
+the same also holds true for minimum support intervals. Minimum support intervals
+are thus only useful for giving confidence intervals an evidential interpretation,
+but not for obtaining always valid confidence intervals.
+
+
+<< "compute-SI" >>=
+## data from RECOVERY trial
+## https://www.nejm.org/doi/10.1056/NEJMoa2021436
+HR <- 0.83
+ciHR <- c(0.75, 0.93)
+logHR <- log(HR)
+selogHR <- diff(log(ciHR))/(2*qnorm(p = 0.975))
+
+## "power to detect a clinically relevant proportional reduction of 20% (an
+## absolute difference of 4 percentage points)"
+m <- log(0.8)
+v <- 4 ## unit information variance for a logHR
+nevents <- 4/selogHR^2 ## implicit event count
+
+library(ciCalibrate)
+si <- ciCalibrate(ci = log(ciHR), method = "SI-normal", priorMean = m,
+                  priorSD = sqrt(v))$si
+@
+
+
+<< "non-local" >>=
+## bf01nl <- function(t, t0, so, s) {
+##     g <- s^2/so^2
+##     (1 + g)^1.5 * exp(-0.5 * (t - t0)^2/so^2 * g/(1 + g)) /
+##         (1 + (t - t0)^2/so^2 * g/(1 + g))
+## }
+## sinl <- function(k, t, so, s) {
+##     g <- s^2/so^2
+##     m <- sqrt((2*lamW::lambertW0(0.5*exp(0.5)/k*(1 + g)^1.5) - 1)*(1 + 1/g))
+##     t + c(-1, 1)*so*m
+## }
+
+## s <- 2
+## plot(logHRseq, bf01nl(t = logHR, t0 = logHRseq, so = selogHR, s = s), type = "l",
+##      log = "y")
+## k <- 10
+## si <- sinl(k = k, t = logHR, so = selogHR, s = s)
+## arrows(x0 = si[1], x1 = si[2], y0 = k, angle = 90, code = 3)
+
+## dnm <- function(x, m, s) {
+##     dnorm(x = x, mean = m, sd = s) * (x - m)^2/s^2
+## }
+
+## rootFun_ <- function(s) {
+##     integrate(f = dnm, lower = 0, upper = 0.69, m = 0, s = s)$value - 0.45
+## }
+## rootFun <- Vectorize(FUN = rootFun_)
+## uniroot(f = rootFun, lower = 0.1, upper = 10)$root
+
+
+## xseq <- seq(-0.4, 0.4, 0.001)
+## plot(xseq, dnm(xseq, m = 0, s = 0.28), type = "l")
+
+@
+
+<< >>=
+## library(ciCalibrate)
+
+## ciCalibrate(estimate = logHR, se = selogHR, siLevel = 10,
+##             method = "SI-normal", priorMean = m, priorSD = 2)
+## ciCalibrate(estimate = logHR, se = selogHR, siLevel = 10,
+##             method = "SI-normal-local", priorSD = 2)
+## ciCalibrate(estimate = logHR, se = selogHR, siLevel = 10,
+##             method = "SI-normal-nonlocal", priorSD = 0.28)
+
+
+@
+
+
+<< "samplesize" >>=
+## k <- 10
+## w <- 0.2
+## lambda <- 2
+## expterm1 <- lamW::lambertW0(x = -k^2*w^2/4/lambda^2)
+## expterm2 <- lamW::lambertWm1(x = -k^2*w^2/4/lambda^2)
+## (n <- k^2*exp(-c(expterm1, expterm2)))
+
+## library(ciCalibrate)
+## est <- 0
+## se <- lambda/sqrt(n)
+## par(mfrow = c(1, 2))
+## plot(ciCalibrate(siLevel = 10, estimate = est, se = se[1], priorMean = est, priorSD = lambda))
+## plot(ciCalibrate(siLevel = 10, estimate = est, se = se[2], priorMean = est, priorSD = lambda))
+@
+
+
+\section{Discussion}
+Misinterpretations and misconceptions of confidence intervals are common
+\citep{Hoekstra2014, Greenland2016}. We showed how confidence
+intervals can be calibrated to support intervals which have an intuitive
+interpretation in terms of the evidence that the data provide for the included
+parameter values. We gave easy to use formulas for different types of approximate
+support intervals for unknown parameters based on an estimate and standard error
+thereof. Which type should data analysts use
+in practice? We think the support interval based on a normal prior distribution
+is the most intuitive for encoding external knowledge. This type should therefore
+be preferably used whenever external knowledge is available. At the same time,
+the support interval based on a local normal prior with unit-information variance
+\citep{Kass1995b} seems to be a reasonable  ``default'' choice in case no external
+knowledge is available. Finally, we think that minimum support intervals
+are mostly useful for giving confidence intervals an evidential
+interpretation due to the one-to-one mapping between the two.
+
+% To move away from the decisive-sounding term ``confidence'', there have been recent calls
+% to rename confidence intervals into ``compatibility'' intervals.
+Other approaches have been proposed for calibration of confidence intervals.
+For instance, \citet{Rafi2020} propose to
+rename confidence intervals into ``compatibility'' intervals and give their
+confidence level an information theoretic interpretation. For example, a
+95\% confidence interval contains parameter values
+with at most 4.3 bits refutational ``surprisal''. We think that this is a step in
+the right direction, however, we also believe that the term ``compatibility''
+may be misleading, as absence of surprisal does not establish compatibility.
+To do so, an evidential framework is necessary and specification of an alternative
+hypothesis is unavoidable.
+This fact is also illustrated through the proposed
+minimum support intervals which can be one-to-one mapped to bits of refutational surprisal
+(since both can be mapped to confidence levels); without a specific alternative hypothesis only the
+maximum evidence \emph{against} the included parameter values can be quantified.
+% Nevertheless, minimum support intervals may still be a viable alternative to confidence
+% intervals as there is a one-to-one relationship between the two, but minimum support intervals
+% have an evidential interpretation.
+
+We also showed how support intervals can be used for determining approximate
+confidence  intervals whose coverage is controlled even under sequential data
+analyses with repeated looks at the data. Of course, such error rate guarantees
+rest on the assumption that the parametric data model has been correctly specified,
+which in most real world applications will be violated to some extent. We do not
+see this as a problem for the evidential interpretation of support
+intervals, which is usually of more concern to data analysts.
+Evidential inference does not rely on a statistical model being
+``true'' in some abstract sense. Bayes factors and support intervals simply
+quantify the relative predictive performance that the combination of data model
+and parameter distribution yield on out-of-sample data.
+As such, they are the appropriate inferential tools for making sense out of data.
+
+
+
+% Researchers and consumers of research articles often fail to correctly interpret
+% confidence intervals \citep{Hoekstra2014, Greenland2016}. We showed how confidence
+% intervals can be calibrated to support intervals which have a more intuitive
+% interpretation in terms of the evidence that the data provide for the included
+% parameter values. Support intervals they may thus help researchers to make more
+% sensible inferences based on their data.
+
+
+\section*{Software and data}
+All analyses were conducted in the R programming language version
+\Sexpr{paste(version$major, version$minor, sep = ".")}. The code to reproduce
+this manuscript is available at \url{https://github.com/XXXXX/XXXXX}. A snapshot
+of the GitHub repository at the time of writing this article is archived at
+\url{https://doi.org/10.5281/zenodo.XXXXX}.
+
+\section*{Acknowledgements}
+We thank X and Y for Z. Our acknowledgement of these individuals does not imply
+their endorsement of this article. This work was supported by a XYZ grant to X
+(grant number XXXX). The funder had no role in study design, data collection,
+data analysis, data interpretation, decision to publish, or preparation of the
+manuscript.
+
+% %% Appendix
+% %% -----------------------------------------------------------------------------
+% \begin{appendices}
+
+% \section{Appendix title}
+% \label{appendix:xxxx}
+% The proof of our claim is left as an exercise for the reader.
+
+% \end{appendices}
+
+%% Bibliography
+%% -----------------------------------------------------------------------------
+\bibliographystyle{apalikedoiurl}
+\bibliography{bibliography}
+
+
+%% R sessionInfo for reproducibility
+%% -----------------------------------------------------------------------------
+<< "sessionInfo1", eval = Reproducibility, results = "asis" >>=
+## print R sessionInfo to see system information and package versions
+## used to compile the manuscript (set Reproducibility = FALSE, to not do that)
+cat("\\section*{Computational details}")
+@
+<< "sessionInfo2", echo = Reproducibility, results = Reproducibility >>=
+sessionInfo()
+@
+
+\end{document}
