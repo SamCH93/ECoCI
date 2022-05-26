@@ -112,6 +112,49 @@ library(ciCalibrate) # support intervals
 library(lamW) # Lambert W function
 library(colorspace) # color palettes
 library(ggplot2) # plotting
+
+## Function to nicely format Bayes factors
+.formatBF_ <- function(BF, digits = "default") {
+    ## check inputs
+    stopifnot(
+        length(BF) == 1,
+        is.numeric(BF),
+        (is.finite(BF) && 0 < BF) || is.na(BF),
+
+        length(digits) == 1,
+        (is.character(digits) && digits == "default") ||
+        (is.numeric(digits) && 0 <= digits)
+    )
+    ## return NA if input NA/NaN
+    if (is.na(BF) || is.nan(BF))
+        result <- NA
+    else {
+        ## format BF
+        if (digits == "default") {
+            if (BF < 1/1000)
+                result <- "< 1/1000"
+            if ((BF >= 1/1000) & (BF <= 1/10))
+                result <- paste0("1/", as.character(round(1/BF)))
+            if ((BF > 1/10) & (BF < 1))
+                result <- paste0("1/", as.character(round(1/BF, digits = 1)))
+            if ((BF < 10) & (BF >= 1))
+                result <- as.character(round(BF, digits = 1))
+            if ((BF >= 10) & (BF <= 1000))
+                result <- as.character(round(BF))
+            if (BF > 1000)
+                result <- "> 1000"
+        } else {
+            if (BF < 1)
+                result <- paste0("1/", as.character(round(1/BF, digits = digits)))
+            else
+                result <- as.character(round(BF, digits = digits))
+        }
+        ## when 1/1 return 1
+        if (result == "1/1") result <- "1"
+    }
+    return(result)
+}
+formatBF <- Vectorize(FUN = .formatBF_)
 @
 
 %% Abstract
@@ -228,8 +271,8 @@ For instance, the $k=10$ support set contains parameter values that are strongly
 supported by the data, whereas the $k=1/10$ support set contains values that are
 at least not strongly contradicted.
 \begin{figure}[!htb]
-<< "figure-recovery", fig.height = 3.5 >>=
-## data from RECOVERY trial
+<< "figure-BFfun-RECOVERY", fig.height = 3.5 >>=
+## data from RECOVERY trial abstract
 ## https://www.nejm.org/doi/10.1056/NEJMoa2021436
 HR <- 0.83
 ciHR <- c(0.75, 0.93)
@@ -239,71 +282,47 @@ selogHR <- diff(log(ciHR))/(2*qnorm(p = 0.975))
 ## "power to detect a clinically relevant proportional reduction of 20% (an
 ## absolute difference of 4 percentage points)"
 m <- log(0.8)
-v <- 4 ## unit information variance for a logHR
-nevents <- 4/selogHR^2 ## implicit event count
+v <- 4 # unit information variance for a logHR
+nevents <- 4/selogHR^2 # implicit event count
 
-## function to compute BF for different null values
-BFfun <- function(t0, x, se, m, v, log = FALSE) {
-    logBF <- 0.5*log(1 + v/se^2) - 0.5*((x - t0)^2/se^2 - (x - m)^2/(se^2 + v))
-    if (log == FALSE) return(exp(logBF))
-    else return(logBF)
-}
-
-## function to compute SI
-SIfun <- function(k, x, se, m, v) {
-    M <- sqrt(log(1 + v/se^2) + (x - m)^2/(se^2 + v) - 2*log(k))
-    x + c(-1, 1)*se*M
-}
+## compute k SI for different k
 k <- c(1/10, 1, 10)
-siDF <- do.call("rbind", lapply(X = k, FUN = function(k) {
-    si <- SIfun(k = k, x = logHR, se = selogHR, m = m, v = v)
-    data.frame(k = k, lower = si[1], upper = si[2], est = logHR)
+siList <- lapply(X = k, FUN = function(k) {
+    si <- ciCalibrate(estimate = logHR, se = selogHR, siLevel = k,
+                      method = "SI-normal", priorMean = m, priorSD = sqrt(v))
+})
+siDF <- do.call("rbind", lapply(X = siList, FUN = function(x) {
+    data.frame(k = x$siLevel, lower = x$si[1], upper = x$si[2],
+               est = x$estimate)
 }))
 
-## plot BF function and indicate support intervals by cut-offs
+## compute BF function
 logHRseq <- seq(log(0.65), log(1.05), length.out = 500)
-plotDF <- data.frame(logHR = logHRseq,
-                     HR = exp(logHRseq),
-                     BF = BFfun(t0 = logHRseq, x = logHR, se = selogHR,
-                                m = m, v = v, log = FALSE))
-library(ggplot2)
+bfFun <- siList[[1]]$bfFun
+plotDF <- data.frame(logHR = logHRseq, HR = exp(logHRseq),
+                     BF = bfFun(x = logHRseq))
+
+## plot BFfun and k SI
 bfBks <- c(1, 3, 10, 30, 100, 300, 1000)
 bfBks <- c(1, 10, 100, 1000)
 bfBks <- c(1/bfBks, bfBks)
-bfMax <- BFfun(t0 = logHR, x = logHR, se = selogHR, m = m, v = v)
+bfMax <- bfFun(x = logHR)
 ggplot(data = plotDF, aes(x = logHR, y = BF)) +
     geom_ribbon(aes(ymin = 0, ymax = BF), alpha = 0.05, fill = 1) +
     geom_line(size = 0.3) +
     geom_errorbarh(data = siDF, aes(xmin = lower, xmax = upper, y = k),
                    height = 0.15, size = 0.3) +
-    ## geom_point(data = siDF, aes(x = lower, y = k)) +
-    ## geom_point(data = siDF, aes(x = upper, y = k)) +
     annotate(geom = "point", x = logHR, y = bfMax, size = 0.7) +
-    ## annotate(geom = "curve", xend = logHR + 0.001, x = logHR + 0.1, yend = bfMax*1.1,
-    ##          y = bfMax*0.95, arrow = arrow(length = unit(0.015, "npc"),
-    ##                                       type = "closed"),
-    ##          angle = 90, size = 0.2, alpha = 0.7) +
-    ## annotate(geom = "curve", xend = logHR, x = logHR + 0.1, yend = bfMax,
-    ##          y = bfMax*0.95,
-    ##          angle = 90, size = 0.2, alpha = 0.7) +
-    ## annotate(geom = "text", x = logHR + 0.105, y = bfMax*0.85, size = 3,
-    ##          label = "'MLE' ~ hat(theta)", parse = TRUE) +
         annotate(geom = "text", x = logHR, y = bfMax*1.5, size = 3,
                  label = "'MLE' ~ hat(theta)", parse = TRUE) +
-    ## geom_text(data = siDF,
-    ##           aes(x = est, y = k*1.4,
-    ##               label = paste0("italic(k) == ", BayesRep::formatBF(BF = k),
-    ##                              "~ 'SI'")),
-    ##           parse = TRUE) +
     geom_text(data = siDF,
               aes(x = est, y = k*1.4,
-                  label = paste0("italic(k) == ", BayesRep::formatBF(BF = k))),
+                  label = paste0("italic(k) == ", formatBF(BF = k))),
               parse = TRUE) +
-    ## geom_point(data = siDF, aes(x = est, y = k)) +
-    scale_y_log10(breaks = bfBks, labels = BayesRep::formatBF(BF = bfBks)) +
+    scale_y_log10(breaks = bfBks, labels = formatBF(BF = bfBks)) +
     coord_cartesian(ylim = c(1/100, 100)) +
     labs(x = bquote("Log hazard ratio" ~ theta[scriptstyle("0")]),
-         y = bquote("BF"["01"] * "(data ; " * theta[scriptstyle("0")] * ")")) +
+         y = bquote("BF"["01"] * "(data; " * theta[scriptstyle("0")] * ")")) +
     theme_bw() +
     theme(panel.grid.minor = element_blank())
 @
@@ -384,7 +403,7 @@ use data from the RECOVERY trial \citep{RECOVERY2021} as a running example.
 
 
 \begin{table}[!htb]
-% \setlength{\extrarowheight}{4pt}
+%\setlength{\extrarowheight}{4pt}
     \centering
     \caption{Summary of confidence/credible intervals (CI),
     support intervals (SI), and minimum support intervals (minSI) for an unknown
@@ -405,13 +424,13 @@ use data from the RECOVERY trial \citep{RECOVERY2021} as a running example.
     % support intervals do only exist for support levels $k$ for which the
     % standard error multipliers exist, \ie{} the respective term in the square root needs to be
     % non-negative and/or the argument for $\lw{-1}(\cdot)$ needs to be in $[-1/e, 0)$.
-    $\lw{0}(\cdot)$ denotes the principal branch of the Lambert W function \citep{Corless1996},
-    and $\lw{-1}(\cdot)$ denotes the branch that satisfies $\mbox{W}(y) \leq 1$ for
-    $y \in [-1/e, 0)$. The respective (minimum) support intervals do only exist for support
-    levels $k$ for which the standard error multipliers exist, \ie{} the respective term in
-    the square root needs to be non-negative and/or the argument for $\lw{-1}(\cdot)$ needs
-    to be in $[-1/e, 0)$.
-    }
+    $\lw{0}(\cdot)$ denotes the principal branch of the Lambert W function
+    \citep{Corless1996}, and $\lw{-1}(\cdot)$ denotes the branch that satisfies
+    $\mbox{W}(y) \leq 1$ for $y \in [-1/e, 0)$. The respective (minimum) support
+    intervals do only exist for support levels $k$ for which the standard error
+    multipliers exist, \ie{} the respective term in the square root needs to be
+    non-negative and/or the argument for $\lw{-1}(\cdot)$ needs to be in
+    $[-1/e, 0)$. }
     \label{tab:summary}
     \begin{tabular}{lll}
     \toprule
@@ -518,12 +537,12 @@ for the respective support interval with $k \geq 1$ to exist.
 
 \subsection{Local normal prior under the alternative}
 \label{sec:local}
-The objective Bayesian approach usually specifies \emph{local priors} under
-the alternative, \ie{} unimodal and symmetric priors centered around the
-null value $\theta_0$, for instance, the unit-information prior
-$\theta \given \h{1} \sim \Nor(m = \theta_0, s^2 = n \times \sigma^2)$
-from \citet{Kass1995b}. This leads to a slightly different expression for the
-Bayes factor
+The objective Bayesian approach usually specifies \emph{local priors} under the
+alternative, \ie{} unimodal and symmetric priors centered around the null value
+$\theta_0$, for instance, the unit-information prior
+$\theta \given \h{1} \sim \Nor(m = \theta_0, s^2 = n \times \sigma^2)$ from
+\citet{Kass1995b}. This leads to a slightly different expression for the Bayes
+factor
 \begin{align*}
     \BF_{01}(\that ; \theta_0) = \sqrt{1 + s^2/\sigma^2}
     \, \exp\left\{-\frac{1}{2} \, \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/s^2)} \right\}
@@ -539,29 +558,30 @@ as also given in the third row of Table~\ref{tab:summary}.
 
 The interpretation of the support interval based on local normal
 priors~\eqref{eq:silocal} differs from the support interval based on normal
-priors~\eqref{eq:si} since the prior distribution of $\theta$ under the alternative
-hypothesis $\h{1}$ is different for each parameter value. As such, the likelihood
-of the data under the alternative represents a locally averaged likelihood for
-each parameter value.
-In the case of the unit-information prior support interval, the standard error
-multiplier $\mbox{M} = \surd[\{\log(1 + n) - 2 \log k\}(1 + 1/n)]$ is wider than
-for the Jeffreys's approximate Bayes factor by a factor of $\surd(1 + 1/n)$ but
-the condition $n \geq k^2 - 1$ for the existence of the $k \geq 1$ support interval
+priors~\eqref{eq:si} since the prior distribution of $\theta$ under the
+alternative hypothesis $\h{1}$ is different for each parameter value. As such,
+the likelihood of the data under the alternative represents a locally averaged
+likelihood for each parameter value. In the case of the unit-information prior
+support interval, the standard error multiplier
+$\mbox{M} = \surd[\{\log(1 + n) - 2 \log k\}(1 + 1/n)]$ is wider than for the
+Jeffreys's approximate Bayes factor by a factor of $\surd(1 + 1/n)$ but the
+condition $n \geq k^2 - 1$ for the existence of the $k \geq 1$ support interval
 is the same.
 
 \subsection{Nonlocal normal moment prior under the alternative}
 \label{sec:nonlocal}
 An alternative philosophy in Bayesian hypothesis testing is to specify so-called
-\emph{nonlocal priors} under the alternative. This class of priors is characterized
-by having no mass at the null-value $\theta_0$, thereby leading to a faster accumulation
-of evidence than local priors when the null hypothesis is actually true \citep{Johnson2010}.
-One popular type of nonlocal priors is given by \emph{normal moment priors}
-$\theta \sim \mathrm{NM}(m, s^2)$, which have density
+\emph{nonlocal priors} under the alternative. This class of priors is
+characterized by having no mass at the null-value $\theta_0$, thereby leading to
+a faster accumulation of evidence than local priors when the null hypothesis is
+actually true \citep{Johnson2010}. One popular type of nonlocal priors is given
+by \emph{normal moment priors} $\theta \sim \mathrm{NM}(m, s^2)$, which have
+density
 $f(\theta \given m, s^2) = \Nor(\theta \given m, s^2) \times (\theta - m)^2/s^2$
 where $\Nor(\cdot \given m, s^2)$ denotes the density function of a normal
 distribution with mean $m$ and variance $s^2$. The Bayes factor contrasting
-$\h{0}\colon \theta = \theta_0$ to $\h{1}\colon \theta \sim \mathrm{NM}(\theta_0, s^2)$
-is then given by
+$\h{0}\colon \theta = \theta_0$ to
+$\h{1}\colon \theta \sim \mathrm{NM}(\theta_0, s^2)$ is then given by
 \begin{align*}
     \BF_{01}(\that ; \theta_0) =
     (1 + s^2/\sigma^2)^{3/2} \,
@@ -576,14 +596,14 @@ from which the corresponding $k$ support interval can be derived to be
     \left(1 + \sigma^2/s^2\right)}
 \end{align}
 with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function
-\citep{Corless1996}. It is possible that
-the support interval~\eqref{eq:sinonlocal} does not exist, as for the other two
-types of support intervals. This happens when the Lambert W term is smaller
-than one so that the square root is undefined. One can see from the identity
-$\lw{0}(e) = 1$ that this situations occurs when
-$(1 + s^2/\sigma^2)^{3/2}/(2k) < \sqrt{e}$, meaning that the standard error
-$\sigma$ has to be sufficiently small relative to the prior scale
-$s$ parameter and the support level $k$, so that the interval exists.
+\citep{Corless1996}. It is possible that the support
+interval~\eqref{eq:sinonlocal} does not exist, as for the other two types of
+support intervals. This happens when the Lambert W term is smaller than one so
+that the square root is undefined. One can see from the identity $\lw{0}(e) = 1$
+that this situations occurs when $(1 + s^2/\sigma^2)^{3/2}/(2k) < \sqrt{e}$,
+meaning that the standard error $\sigma$ has to be sufficiently small relative
+to the prior scale $s$ parameter and the support level $k$, so that the interval
+exists.
 
 
 \subsection{Example RECOVERY trial}
@@ -594,18 +614,18 @@ log hazard ratio of $\that = -0.19$ with 95\% confidence interval from $-0.29$
 to $-0.97$ (see the first row in Figure~\ref{fig:comparison}), based on which the trial investigators concluded that dexamethasone
 resulted in lower Covid-19 mortality compared to usual care.
 
-The trial steering committee determined the sample size of the trial based on an assumed
-clinically relevant log hazard ratio of $\log 0.8 = -0.22$. This effect size
-can be used to inform the normal prior under the alternative $\h{1}$, \ie{}
+The trial steering committee determined the sample size of the trial based on an
+assumed clinically relevant log hazard ratio of $\log 0.8 = -0.22$. This effect
+size can be used to inform the normal prior under the alternative $\h{1}$, \ie{}
 we specify the mean $m = -0.22$ along with the unit-information variance
 $s^2 = 4$ for a log hazard ratio \citep[chapter 2.4.2]{Spiegelhalter2004}.
-Likewise, we use the
-unit-information variance $s^2 = 4$ as the variance of the local normal prior.
-The scale parameter of the nonlocal moment prior $s$ is elicited with a similar
-approach as \citet{Pramanik2022}; The value is $s = 0.28$ selected so that
-90\% probability mass is assigned to log hazard ratios between $(\theta_0 - \log2, \theta_0)$
-and $(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double or half the hazard
-relative to the null value $\theta_0$.
+Likewise, we use the unit-information variance $s^2 = 4$ as the variance of the
+local normal prior. The scale parameter of the nonlocal moment prior $s$ is
+elicited with a similar approach as \citet{Pramanik2022}; The value is
+$s = 0.28$ selected so that 90\% probability mass is assigned to log hazard
+ratios between $(\theta_0 - \log2, \theta_0)$ and
+$(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double
+or half the hazard relative to the null value $\theta_0$.
 
 % One way to choose the scale parameter $s$ of the nonlocal prior is to fix
 % % the modes $\theta_0 \pm s \sqrt{2}$ or
@@ -616,80 +636,65 @@ relative to the null value $\theta_0$.
 % sizes in psychological research.
 
 \begin{figure}[!htb]
-<< "comparison", fig.height = 3.7 >>=
-## functions for different standard error multipliers
-CIseMconf <- function(alpha, conflevel = 1 - alpha/2) {
-    qnorm(p = (conflevel + 1)/2)
-}
-SIseMnormal <- function(k, x, se, m , v) {
-    sqrt(log(1 + v/se^2) + (x - m)^2/(se^2 + v) - 2*log(k))
-}
-SIseMnormalnonlocal <- function(k, x, se, m, ...) {
-    ## v <- abs(m)^2/2
-    v <- 0.28^2
-    sqrt((2*lamW::lambertW0(x = 0.5*exp(0.5)/k*(1 + v/se^2)^1.5) - 1)*
-            (1 + se^2/v))
-}
-SIseMnormallocal <- function(k, x, se, v, ...) {
-    sqrt(log(1 + v/se^2)- 2*log(k))*sqrt(1 + se^2/v)
-}
-mSIseMall <-  function(k, x, se, ...) {
-    sqrt(-2*log(k))
-}
-mSIseMnormallocal <-  function(k, x, se, ...) {
-    sqrt(-lamW::lambertWm1(x = -k^2/exp(1)))
-}
-mSIseMeplogp <-  function(k, x, se, ...) {
-    qnorm(p = 1 - exp(lamW::lambertWm1(-k/exp(1)))/2)
-}
-## SIseM <- list("SI normal" = SIseMnormal, "SI normal local" = SIseMnormallocal,
-##               "mSI all" = mSIseMall, "mSI normal local" = mSIseMnormallocal,
-##               "mSI -eplogp" = mSIseMeplogp)
-SIseM <- list("italic(k) ~ 'SI (normal prior)'" = SIseMnormal,
-              "italic(k) ~ 'SI (local normal prior)'" = SIseMnormallocal,
-              "italic(k) ~ 'SI (nonlocal normal moment prior)'" = SIseMnormalnonlocal,
-              "italic(k) ~ 'minSI (all priors)'" = mSIseMall,
-              "italic(k) ~ 'minSI (local normal priors)'" = mSIseMnormallocal,
-              "italic(k) ~ 'minSI ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'" = mSIseMeplogp)
-type <- names(SIseM)
-ciName <- "'95% CI'"
-typeLevels <- rev(c(ciName, type))
+<< "figure-SIcomparison-RECOVERY", fig.height = 3.7 >>=
+## compute different types of support intervals for different support levels k
+## -----------------------------------------------------------------------------
 
-## plot of different SI types for RECOVERY
+## set up grid of methods and support levels
 k <- c(1/10, 1/3, 1, 3, 10)
-plotDF <- do.call("rbind", lapply(X = k, FUN = function(k) {
-    M <- sapply(X = seq_along(SIseM), FUN = function(i) {
-        SIseM[[i]](k = k, x = logHR, se = selogHR, m = m, v = v)
-    })
-    data.frame(k = k, type = type, lower = logHR - selogHR*M,
-               upper = logHR + selogHR*M, est = logHR)
+methods <- c("SI-normal","SI-normal-local","SI-normal-nonlocal", "mSI-all",
+             "mSI-normal-local", "mSI-eplogp")
+methodName <- c("italic(k) ~ 'SI (normal prior)'",
+                "italic(k) ~ 'SI (local normal prior)'",
+                "italic(k) ~ 'SI (nonlocal normal moment prior)'",
+                "italic(k) ~ 'minSI (all priors)'",
+                "italic(k) ~ 'minSI (local normal priors)'",
+                "italic(k) ~ 'minSI ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'")
+names(methods) <- methodName
+ciName <- "'95% CI'"
+typeLevels <- rev(c(ciName, methodName))
+applyGrid <- expand.grid(k = k, methodi = seq(1, length(methods)))
+applyGrid$method <- methods[applyGrid$methodi]
+applyGrid$name <- methodName[applyGrid$methodi]
+
+## compute SIs
+m <- log(0.8) # mean of normal prior
+v <- 4 # unit information variance normal and local normal prior
+vnonlocal <- 0.28^2 # scale parameter of nonlocal normal prior
+siDF <- do.call("rbind", lapply(X = seq(1, nrow(applyGrid)), FUN = function(i) {
+    k <- applyGrid$k[i]
+    method <- applyGrid$method[i]
+    name <- applyGrid$name[i]
+    ## HACK prior parameters are ignored for methods that do not depend on them
+    ## so we can set priorMean = m for all methods since only "SI-normal"
+    ## depends on it. Is there a cleaner solution?
+    if (method == "SI-normal-nonlocal") {
+        priorSD <- sqrt(vnonlocal)
+    } else {
+        priorSD <- sqrt(v)
+    }
+    si <- ciCalibrate(estimate = logHR, se = selogHR, method = method,
+                      siLevel = k, priorMean = m, priorSD = priorSD)
+    data.frame(k = k, type = name, lower = si$si[1], upper = si$si[2],
+               est = logHR)
 }))
-plotDF$type <- ordered(x = plotDF$type, levels = typeLevels)
+## combine with CI
 ciDF <- data.frame(k = NA, type = ciName, lower = log(ciHR)[1],
                    upper = log(ciHR[2]), est = logHR)
-ciDF$type <-  ordered(x = ciDF$type, levels = typeLevels)
-allDF <- rbind(ciDF, plotDF)
+plotDF <- rbind(siDF, ciDF)
+plotDF$type <- ordered(x = plotDF$type, levels = typeLevels)
 
-## nice colors
-plotDF$kfac <- factor(plotDF$k, levels = k, labels = BayesRep::formatBF(BF = k))
-library(colorspace)
-cols <- sequential_hcl(n = (length(k)+2), palette = "Grays", rev = TRUE)[2:(length(k)+1)]
-names(cols) <- levels(plotDF$kfac)
-
-cols <- diverging_hcl(n = length(k), palette = "Blue-Red", rev = TRUE)
+## define diverging color palette
+plotDF$kfac <- factor(plotDF$k, levels = k, labels = formatBF(BF = k))
 cols <- divergingx_hcl(n = length(k), palette = "Zissou 1", rev = TRUE)
 names(cols) <- levels(plotDF$kfac)
 
-
-
-
-## base plot
+## plot CI and SIs
 plotA <- ggplot() +
-    geom_point(data = allDF, aes(x = type, y = est), size = 0, alpha = 0) +
+    geom_point(data = plotDF, aes(x = type, y = est), size = 0, alpha = 0) +
     geom_errorbar(data = ciDF, aes(x = type, ymin = lower, ymax = upper),
                   col = 1, alpha = 1, width = 0.35, size = 0.4)
-    ## geom_hline(yintercept = 0, lty = 2, alpha = 0.1)
-## draw SIs on top of each other
+## HACK draw SIs in correct order so that narrower SI on top of longer ones
 for (i in seq_along(k)) {
     ki <- k[i]
     dat <- subset(plotDF, k == ki)
@@ -700,7 +705,7 @@ for (i in seq_along(k)) {
                       width = 0.35)
 }
 plotA +
-    geom_point(data = ciDF,
+    geom_point(data = subset(plotDF, type == ciName),
                aes(x = type, y = est), size = 0.9, color = 1, alpha = 1) +
                #shape = "square") +
     labs(x = "", y = bquote("Log hazard ratio" ~ theta),
@@ -904,22 +909,28 @@ $p$-values \citep{Held2018}.
 
 
 \begin{figure}[!htb]
-<< "mapping-conf-level-minimum-k", fig.height = 4 >>=
-## mapping between confidence level and k such that same standard error multiplier
+<< "figure-mapping-conf-minsupport", fig.height = 4 >>=
+## functions to compute minimum support level k from confidence level such that
+## the same standard error multiplier
+## -----------------------------------------------------------------------------
+## class of all priors
 conf2kall <- function(conf) {
     exp(-0.5*qnorm(p = (1 + conf)*0.5)^2)
 }
+## class of local normal priors
 conf2knormallocal <- function(conf) {
     z <- qnorm(p = (1 + conf)*0.5)
     abs(z)*exp(-0.5*(z^2 - 1))
 }
+## -plogp
 conf2keplogp <- function(conf) {
     k <- -exp(1)*log(1 - conf)*(1 - conf)
     return(k)
 }
-conf2k <- list("italic(k) ~ 'minimum support (all priors)'" = conf2kall,
-               "italic(k) ~ 'minimum support (local normal priors)'" = conf2knormallocal,
-               "italic(k) ~ 'minimum support ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'" = conf2keplogp)
+conf2k <- list(conf2kall, conf2knormallocal,conf2keplogp)
+conf2kName <- c("italic(k) ~ 'minimum support (all priors)'",
+                "italic(k) ~ 'minimum support (local normal priors)'",
+                "italic(k) ~ 'minimum support ('*-italic('e') *italic('p') * 'log' *italic('p')* ')'")
 
 ## computing mapping for a grid of confidence levels
 confseq <- seq(0.8, 0.9999, length.out = 2000)
@@ -927,11 +938,11 @@ mseq <- qnorm(p = 0.5*(1 + confseq))
 plotDF <- do.call("rbind", lapply(X = seq_along(conf2k), FUN = function(i) {
     f <- conf2k[[i]]
     k <- f(conf = confseq)
-    data.frame(type = names(conf2k)[i], conflevel = confseq, m = mseq, k = k)
+    data.frame(type = conf2kName[i], conflevel = confseq, m = mseq, k = k)
 }))
-plotDF$type <- factor(x = plotDF$type, levels = names(conf2k))
+plotDF$type <- factor(x = plotDF$type, levels = conf2kName)
 
-## plotting conflevel vs support level
+## plotting conflevel vs minimum support level
 bfBks <- c(1/300, 1/100, 1/30, 1/10, 1/3, 1)
 confbks <- seq(90, 99, 1)
 ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type)) +
@@ -939,11 +950,11 @@ ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type)) +
     ## scale_x_continuous(sec.axis = sec_axis(~ conf2z(./100), name = "SE multiplier",
     ##                                        breaks = c(1.7, 1.8, 2, 2.3, 3))) +
     scale_x_continuous(breaks = confbks) +
-    scale_y_log10(breaks = bfBks, labels = BayesRep::formatBF(BF = bfBks),
+    scale_y_log10(breaks = bfBks, labels = formatBF(BF = bfBks),
                   expand = c(0, 0)) +
     expand_limits(y = 1.5) +
     coord_cartesian(xlim = c(89.7, 99.3), ylim = c(1/250, 1.3)) +
-    labs(y = bquote("Support level" ~ italic(k)),
+    labs(y = bquote("Minimum support level" ~ italic(k)),
          x = bquote("Confidence level" ~ (1 - alpha)*"%"),
          color = "") +
     scale_color_brewer(palette = "Dark2", labels = scales::parse_format()) +
@@ -1165,8 +1176,6 @@ si <- ciCalibrate(ci = log(ciHR), method = "SI-normal", priorMean = m,
 ##             method = "SI-normal-local", priorSD = 2)
 ## ciCalibrate(estimate = logHR, se = selogHR, siLevel = 10,
 ##             method = "SI-normal-nonlocal", priorSD = 0.28)
-
-
 @
 
 
@@ -1254,28 +1263,71 @@ this manuscript is available at \url{https://github.com/XXXXX/XXXXX}. A snapshot
 of the GitHub repository at the time of writing this article is archived at
 \url{https://doi.org/10.5281/zenodo.XXXXX}.
 
-\section*{Acknowledgements}
-We thank X and Y for Z. Our acknowledgement of these individuals does not imply
-their endorsement of this article. This work was supported by a XYZ grant to X
-(grant number XXXX). The funder had no role in study design, data collection,
-data analysis, data interpretation, decision to publish, or preparation of the
-manuscript.
+\section*{Acknowledgments}
+We thank Leonhard Held for helpful comments on an earlier version of the manuscript.
+This work was supported in part by an NWO Vici grant (016.Vici.170.083) to EJW, and a
+Swiss National Science Foundation mobility grant (part of 189295) to SP.
+% Our acknowledgement of these individuals does not imply their endorsement of
+% this article.
+
 
 % %% Appendix
 % %% -----------------------------------------------------------------------------
-% \begin{appendices}
+\begin{appendices}
+\section{The universal bound}
+\label{app:universalBound}
+We briefly review the universal bound \citep[Ch. 1.4]{Royall1997} for
+Bayes factors. Let $k \leq 1$ and
+$\mathcal{X}_k = \left\{x : \BF_{01}(x) %= \frac{f(x\given\h{0})}{f(x\given\h{1})}
+    \leq k \right\}$
+so that the probability for observing misleading evidence
+$\BF_{01}(x) \leq k$ when $\h{0}$ is true is
+\begin{align*}
+    \P\left(\BF_{01}(X) \leq k \given \h{0}\right)
+    &= \int_{\mathcal{X}_k} f(x\given \h{0}) \,\text{d}x \\
+    &\leq \int_{\mathcal{X}_k} k\, f(x\given \h{1}) \,\text{d}x \\
+    &\leq k.
+\end{align*}
+The first inequality follows from the fact that
+$f(x \given \h{0}) \leq k \,f(x \given \h{1})$ for all $x \in \mathcal{X}_k$ by
+definition of $\mathcal{X}_k$, while the second inequality follows from the
+fact that the integral of $f(x\given \h{1})$ over $\mathcal{X}_k$ can at most
+be one. A generalization of this result to sequential analysis of data was
+first established by \citet{Robbins1970}. Appendix A1 in \citet{Pace2019} gives
+his original proof in modern notation.
 
-% \section{Appendix title}
-% \label{appendix:xxxx}
-% The proof of our claim is left as an exercise for the reader.
+% Attempting to replicate this proof for minimum Bayes factors shows why the universal
+% bound does not hold in this case: Let
+% \begin{align*}
+%     \minBF_{01}(x)
+%     % = \frac{f(x\given\h{0})}{\sup_{g\in G} f(x\given\h{1})}
+%     =\frac{f(x\given\h{0})}{\sup_{g\in G} \int f(x\given\theta)
+%     \, g(\theta \given\h{1})\, \text{d}\theta}
+% \end{align*}
+% denote the minimum Bayes factor with $g(\theta \given\h{1})$ the prior density of
+% $\theta$ under $\h{1}$ which is within a class of distributions $G$
+% \citep{Berger1987}. Define
+% $\mathcal{X}_k = \left\{x : \minBF_{01}(x) %= \frac{f(x\given\h{0})}{f(x\given\h{1})}
+%     \leq k \right\}$
+% so that the probability for misleading evidence is
+% \begin{align*}
+%     \P\left(\minBF_{01}(X) \leq k \given \h{0}\right)
+%     &= \int_{\mathcal{X}_k} f(x\given \h{0}) \,\text{d}x \\
+%     &\leq k \int_{\mathcal{X}_k} \left\{\sup_{g\in G} \int f(x\given\theta)
+%     \, g(\theta \given\h{1})\, \text{d}\theta \right\} \,\text{d}x. \\
+% \end{align*}
+% In this case the integral of the supremum over $\mathcal{X}_k$ is not bounded
+% by one, so that the probability of observing misleading evidence may be larger than $k$.
+% For instance, when $X \given \theta \sim \Nor(\theta, 1)$, $\h{0}\colon \theta = 0$,
+% and $G$ is the class of normal densities centered around zero we have that
+% $\sup_{g\in G} \int f(x\given\theta) \, g(\theta \given\h{1})\, \text{d}\theta
+% = \Nor(x \given 0, \max\{x^2, 1\})$
 
-% \end{appendices}
-
+\end{appendices}
 %% Bibliography
 %% -----------------------------------------------------------------------------
 \bibliographystyle{apalikedoiurl}
 \bibliography{bibliography}
-
 
 %% R sessionInfo for reproducibility
 %% -----------------------------------------------------------------------------
