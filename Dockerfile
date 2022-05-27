@@ -23,8 +23,8 @@ RUN install2.r --error --skipinstalled --ncpus -1 \
     `cat CRANpackages.txt`
 
 ## install R packages from GitHub (use @ for specific version/tag)
-# RUN installGithub.r \
-#     SamCH93/ciCalibrate@preprint
+RUN installGithub.r \
+    SamCH93/ciCalibrate
 
 ## knit Rnw to tex and compile tex to PDF
 CMD if [ "$pdfdocker" = "false" ] ; then \
