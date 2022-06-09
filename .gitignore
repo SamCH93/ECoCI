@@ -45,3 +45,8 @@ vignettes/*.pdf
 coverletter/
 old/
 poster/
+
+# journal manuscript files
+paper/ecociJournal.*
+paper/imsart.*
+paper/imsart-nameyear.bst
