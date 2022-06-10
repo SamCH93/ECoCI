@@ -16,7 +16,10 @@ First install the required R packages by running in a shell from the root
 directory of the repository
 
 ``` sh
+## packages from CRAN
 R -e 'install.packages(read.delim("CRANpackages.txt", header = FALSE)[,1])'
+## requires remotes package
+R -e 'remotes::install_github(repo = "SamCH93/ciCalibrate")'
 ```
 
 Then run
