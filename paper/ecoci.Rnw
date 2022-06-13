@@ -105,22 +105,22 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
         hypothesis can to some extent be avoided by considering a class of prior
         distributions for the parameter under the alternative, and then
         computing so-called minimum support intervals which have a one-to-one
-        mapping with confidence intervals. For the class of all alternatives,
-        the minimum support interval corresponds to the likelihood ratio support
-        interval which is the narrowest support interval possible. Other classes
-        lead to wider and more conservative minimum support intervals that may
-        better reflect the available evidence. We also show how the sample size
-        of a future study can be determined based on the concept of support.
-        Finally we show how the universal bound for the type-I error rate of
-        Bayes factors leads to a bound for the coverage of support intervals,
-        holding even under sequential analyses with optional stopping. An
-        application to data from a clinical trial illustrates how the
-        calibration to support intervals can lead to inferences that are both
-        intuitive and informative. }
+        mapping with confidence intervals.
+        % For the class of all alternatives,
+        % the minimum support interval corresponds to the likelihood ratio support
+        % interval which is the narrowest support interval possible. Other classes
+        % lead to wider and more conservative minimum support intervals that may
+        % better reflect the available evidence.
+        We also illustrate how the sample size of a future study can be
+        determined based on the concept of support. Finally we show how the
+        universal bound for the type-I error rate of Bayes factors leads to a
+        bound for the coverage of support intervals, holding even under
+        sequential analyses with optional stopping. An application to data from
+        a clinical trial illustrates how the calibration to support intervals
+        can lead to inferences that are both intuitive and informative.}
       \rule{\textwidth}{0.4pt} \\
-      \textit{Keywords}: Bayes factor, Bayes factor bound, Bayesian hypothesis
-      testing, coverage, type-I error rate, minimum Bayes factor, support
-      interval, universal bound}
+      \textit{Keywords}: Bayes factor, coverage, evidence, support interval,
+      universal bound}
 \end{minipage}
 \end{center}
 

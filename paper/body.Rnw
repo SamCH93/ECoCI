@@ -1148,12 +1148,12 @@ theoretic interpretation. For example, a 95\% confidence interval contains
 parameter values with at most 4.3 bits refutational ``surprisal''. We believe
 that this is a step in the right direction; however, we also believe that the
 term ``compatibility'' may be misleading, as absence of surprisal does not
-establish compatibility. To do so, an evidential framework is necessary and
-specification of an alternative hypothesis is unavoidable. This fact is also
-illustrated through the proposed minimum support intervals which can be
-one-to-one mapped to bits of refutational surprisal (since both can be mapped to
-confidence levels); without a specific alternative hypothesis only the maximum
-evidence \emph{against} the included parameter values can be quantified.
+establish compatibility. To do so, we think that an evidential framework is
+necessary and that the specification of an alternative hypothesis is
+unavoidable. Compatibility intervals are in this sense similar to minimum
+support intervals; without a specified alternative hypothesis only the maximum
+surprisal/evidence \emph{against} the included parameter values can be
+quantified.
 
 We also showed how support intervals can be used for determining approximate
 confidence intervals whose coverage is controlled even under sequential data
