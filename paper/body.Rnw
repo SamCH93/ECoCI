@@ -1007,7 +1007,7 @@ sequential analyses to guarantee appropriate error rates, and the theory and
 applicability can become quite involved.
 
 \citet{Lindon2020} proved that $k$ support sets with $k < 1$ are also valid
-$(1 - k)100\%$ confidence sets. Their proof and the related ``safe and always
+$(1 - k)100\%$ confidence sets. Their proof and the related ``safe and anytime
 valid inference'' theory \citep[see \eg{}][]{Grundwald2019} is based on
 relatively technical results from Martingale theory. We now briefly show how the
 universal bound can also be used for establishing the connection between support
@@ -1067,7 +1067,7 @@ intervals. Since the coverage of confidence intervals is not controlled when
 repeated looks at accumulating data are performed, the same also holds true for
 minimum support intervals. Minimum support intervals are thus only useful for
 giving confidence intervals an evidential interpretation, but not for obtaining
-always valid confidence intervals.
+``anytime valid'' confidence intervals.
 
 
 
@@ -1208,8 +1208,8 @@ grant (016.Vici.170.083) to EJW, and a Swiss National Science Foundation
 mobility grant (part of 189295) to SP.
 
 
-% %% Appendix
-% %% -----------------------------------------------------------------------------
+%% Appendix
+%% -----------------------------------------------------------------------------
 \begin{appendices}
 \section{The universal bound}
 \label{app:universalBound}
