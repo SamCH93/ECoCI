@@ -30,17 +30,18 @@
 \newcommand\longtitle{Evidential Calibration of Confidence Intervals}
 \newcommand\shorttitle{Evidential Calibration of Confidence Intervals} % if longtitle too long, change here
 \newcommand\subtitle{}
-\newcommand\longauthors{Samuel Pawel\textsuperscript{*},
-Alexander Ly\textsuperscript{$\dagger$},
+\newcommand\longauthors{Samuel Pawel\textsuperscript{$\star$},
+Alexander Ly\textsuperscript{$\dagger\ddagger$},
 Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 \newcommand\shortauthors{S. Pawel, A. Ly, E.-J. Wagenmakers} % if longauthors too long, change here
 \newcommand\affiliation{
-  * Department of Biostatistics, University of Zurich \\
-  $\dagger$ Department of Psychological Methods, University of Amsterdam
+  $\star$ Department of Biostatistics, University of Zurich \\
+  $\dagger$ Department of Psychological Methods, University of Amsterdam \\
+  $\ddagger$ Machine Learning Group, Centrum Wiskunde \& Informatica
 }
 \newcommand\mail{samuel.pawel@uzh.ch}
 \title{
-  \vspace{-2em}
+  \vspace{-2.5em}
   \textbf{\longtitle} \\
   \subtitle
 }
@@ -78,6 +79,7 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 %% custom commands
 %% ----------------------------------------------------------------------------
 \input{defs.tex}
+\usepackage{float}
 \begin{document}
 \maketitle
 
@@ -96,28 +98,28 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
         based confidence intervals to evidence-based support intervals. Support
         intervals are obtained from inverting Bayes factors based on the point
         estimate and standard error of a parameter estimate. A $k$ support
-        interval can be interpreted such as ``the interval contains parameter
-        values under which the observed data are at least $k$ times more likely
-        than under a specified alternative hypothesis''. Support intervals
-        depend on the specification of an alternative hypothesis, and we present
-        several types that allow data analyst to encode different forms of
-        external knowledge. We also show how specification of an alternative
-        hypothesis can to some extent be avoided by considering a class of prior
-        distributions for the parameter under the alternative, and then
-        computing so-called minimum support intervals which have a one-to-one
-        mapping with confidence intervals.
-        % For the class of all alternatives,
-        % the minimum support interval corresponds to the likelihood ratio support
-        % interval which is the narrowest support interval possible. Other classes
-        % lead to wider and more conservative minimum support intervals that may
-        % better reflect the available evidence.
+        interval can be interpreted as ``the interval contains parameter values
+        under which the observed data are at least $k$ times more likely than
+        under a specified alternative hypothesis''. Support intervals depend on
+        the specification of a prior distribution for the parameter under the
+        alternative, and we present several types that allow data analyst to
+        encode different forms of external knowledge. We also show how prior
+        specification can to some extent be avoided by considering a class of
+        prior distributions and then computing so-called minimum support
+        intervals which, for a given class of priors, have a one-to-one mapping
+        with confidence intervals.
+        % For the class of all alternatives, the minimum support interval
+        % corresponds to the likelihood ratio support interval which is the
+        % narrowest support interval possible. Other classes lead to wider and
+        % more conservative minimum support intervals that may better reflect
+        % the available evidence.
         We also illustrate how the sample size of a future study can be
         determined based on the concept of support. Finally we show how the
         universal bound for the type-I error rate of Bayes factors leads to a
         bound for the coverage of support intervals, holding even under
         sequential analyses with optional stopping. An application to data from
-        a clinical trial illustrates how the calibration to support intervals
-        can lead to inferences that are both intuitive and informative.}
+        a clinical trial illustrates how support intervals can lead to
+        inferences that are both intuitive and informative.}
       \rule{\textwidth}{0.4pt} \\
       \textit{Keywords}: Bayes factor, coverage, evidence, support interval,
       universal bound}

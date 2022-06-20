@@ -45,6 +45,7 @@ vignettes/*.pdf
 coverletter/
 old/
 poster/
+misc/
 
 # journal manuscript files
 paper/ecociJournal.*
