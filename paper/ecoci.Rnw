@@ -102,7 +102,7 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
         under which the observed data are at least $k$ times more likely than
         under a specified alternative hypothesis''. Support intervals depend on
         the specification of a prior distribution for the parameter under the
-        alternative, and we present several types that allow data analyst to
+        alternative, and we present several types that allow data analysts to
         encode different forms of external knowledge. We also show how prior
         specification can to some extent be avoided by considering a class of
         prior distributions and then computing so-called minimum support
