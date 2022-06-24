@@ -1267,7 +1267,7 @@ conducted in the R programming language version
 reproducing the results in this manuscript are available at
 \url{https://github.com/SamCH93/ECoCI}. A snapshot of the GitHub repository at
 the time of writing this article is archived at
-\url{https://doi.org/10.5281/zenodo.XXXXX}. An R package for calibration of
+\url{https://doi.org/10.5281/zenodo.6723249}. An R package for calibration of
 confidence intervals to (minimum) support intervals is available at
 \url{https://github.com/SamCH93/ciCalibrate}, see Appendix~\ref{app:Rpkg} for an
 illustration.
