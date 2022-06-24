@@ -85,6 +85,7 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 
 %% disclaimer that a preprint
 \begin{center}
+  \vspace{-2em}
   {\color{red}This is a preprint which has not yet been peer reviewed.}
 \end{center}
 

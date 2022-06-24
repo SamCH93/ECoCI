@@ -2,8 +2,8 @@
 
 This repository contains code and data related to the preprint
 
-Pawel, S., Ly, A., and Wagenmakers, E.-J. (2022). Evidential calibration of
-confidence intervals.
+Pawel, S., Ly, A., and Wagenmakers, E.-J. (2022). Evidential Calibration of
+Confidence Intervals.
 [10.48550/arXiv.XXXX.XXXXX](https://doi.org/10.48550/arXiv.XXXX.XXXXX)
 
 ## Reproducing the results
