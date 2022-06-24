@@ -220,29 +220,31 @@ interpreted to contain log hazard ratios that are \emph{at least not strongly
 % likelihood estimate (MLE) that is better supported by a factor of at least 8.
 
 
-\begin{table*}[!h]
-  \centering
-  \caption{Classifications of evidence for $\h{0}$ provided by $\BF_{01} = k$.
-    The values of \citet{Jeffreys1961} are slightly adapted from powers of
-    $\sqrt{10}$ as suggested by \citet{Kass1995}. \citet{Fisher1956} defined his
-    cutoffs relative to the likelihood of the data under the maximum likelihood
-    estimate of the parameter $\theta$. He only named the $k < 1/15$ category,
-    for the other categories the names from \citet{Shafer2021} are shown.}
+\begin{table*}[!htb]
+    \centering
+    \caption{Classifications of evidence for $\h{0}$ provided by $\BF_{01} = k$.
+      The values of \citet{Jeffreys1961} are slightly adapted from powers of
+      $\sqrt{10}$ as suggested by \citet{Held2018}. \citet{Fisher1956} defined
+      his cutoffs relative to the likelihood of the data under the maximum
+      likelihood estimate of the parameter $\theta$. He only named the
+      $k < 1/15$ category, for the other categories the names from
+      \citet{Shafer2021} are shown.}
+    \label{tab:evidence}
     \resizebox{\columnwidth}{!}{%
     \begin{tabular}{c c c c c c}
-    \toprule
+      \toprule
       $k$ & \citet{Jeffreys1961} & $k$ & \citet{Royall1997} & $k$ & \citet{Fisher1956} \\
       \cmidrule(lr){1-2}
       \cmidrule(lr){3-4}
       \cmidrule(lr){5-6}
-       > 100 & Decisive & > 64 & Quite strong indeed & 1/2 to 1 & Good \\
-       30 to 100 & Very strong & 32 to 64 & Quite strong & 1/5 to 1/2 & Fair \\
-       3 to 10 & Substantial & 8 to 32 & Pretty strong & 1/15 to 1/5 & Poor \\
-       1 to 3 & Bare mention & & & < 1/15 & Open to grave suspicion \\
-    \bottomrule
+      > 100 & Decisive & > 64 & Quite strong indeed & 1/2 to 1 & Good \\
+      30 to 100 & Very strong & 32 to 64 & Quite strong & 1/5 to 1/2 & Fair \\
+      10 to 30 & Strong & 8 to 32 & Pretty strong & 1/15 to 1/5 & Poor \\
+      3 to 10 & Substantial & & & < 1/15 & Open to grave suspicion \\
+      1 to 3 & Bare mention & & & & \\
+      \bottomrule
     \end{tabular}%
     }
-    \label{tab:evidence}
 \end{table*}
 
 The construction of support sets thus parallels the construction of frequentist
