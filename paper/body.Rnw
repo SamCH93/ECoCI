@@ -419,17 +419,8 @@ While the Bayes factor~\eqref{eq:bf01local} is a special case of the Bayes
 factor~\eqref{eq:bf01}, the support interval~\eqref{eq:silocal} is not a special
 case of the support interval~\eqref{eq:si}. This is because the prior for
 $\theta$ under $\h{1}$ is different for each null value $\theta_0$, whereas it
-is always the same under the two-parameter normal prior approach.
-% The local normal prior for $\theta$ under the alternative depends itself on
-% the null value $\theta_0$ resulting in a different support interval compared
-% to the one based on the two-parameter normal prior\eqref{eq:si}.
-% interpretation of the support interval based on local normal
-% priors~\eqref{eq:silocal} differs from the support interval based on normal
-% priors~\eqref{eq:si} since the prior distribution of $\theta$ under the
-% alternative hypothesis $\h{1}$ is different for each parameter value. As such,
-% the likelihood of the data under the alternative represents a locally averaged
-% likelihood for each parameter value.
-To fully specify the support interval~\eqref{eq:silocal}, the prior variance
+is always the same under the two-parameter normal prior approach. To fully
+specify the support interval~\eqref{eq:silocal}, the prior variance
 $\sigma_\theta^{2}$ needs to be chosen. One standard choice is to set it equal
 to the variance of a single observation ($\sigma_\theta^2 = n \times \sigma^2$),
 known as unit-information prior \citep{Kass1995b}. This approach leads to the
@@ -525,9 +516,6 @@ the null hypothesis $\h{0}$ \citep{Edwards1963, Berger1987, Selke2001,
   Held2018}. Here we refer to these Bayes factor bounds as \emph{minimum Bayes
   factors} for the null $\h{0}$ over the alternative $\h{1}$, as we are
 interested in the support for null values $\theta_0$.
-% Depending on whether the Bayes factor is oriented in favor of the null $\h{0}$
-% (as here) or the alternative $\h{1}$, such Bayes factor bounds are called
-% \emph{minimum Bayes factors} or \emph{maximum Bayes factors}, respectively.
 
 We will now show how minimum Bayes factors can be used for obtaining so-called
 \emph{minimum support sets}. Specifically, a $k$ minimum support set is given by
@@ -580,16 +568,13 @@ data under the MLE has already been suggested by \citet{Fisher1956}.
 Table~\ref{tab:evidence} shows his classification of evidence for this type of
 interval. It is, however, important to note that from a Bayesian perspective the
 support interval~\eqref{eq:sisimple} represents the most blatantly biased
-assessment of support
-% just as the minimum Bayes factor~\eqref{eq:minBFsimple}
-% corresponds to the most biased Bayesian assessment of evidence \citep{Berger1987}.
-in the sense that assigning a point prior at the observed parameter estimate
-hardly reflects prior knowledge about $\theta$ but can rather be considered
-cheating \citep{Berger1987}. This is reflected by the fact that for a given
-estimate (i.e., data set) and fixed support level $k$, the interval represents
-the narrowest support interval possible among all possible support intervals.
-When minimizing over the class of all two-parameter normal priors, i.e., the
-Bayes factor~{\eqref{eq:bf01}}, we get the same minimum Bayes
+assessment of support in the sense that assigning a point prior at the observed
+parameter estimate hardly reflects prior knowledge about $\theta$ but can rather
+be considered cheating \citep{Berger1987}. This is reflected by the fact that
+for a given estimate (i.e., data set) and fixed support level $k$, the interval
+represents the narrowest support interval possible among all possible support
+intervals. When minimizing over the class of all two-parameter normal priors,
+i.e., the Bayes factor~{\eqref{eq:bf01}}, we get the same minimum Bayes
 factor~{\eqref{eq:minBFsimple}}.
 
 
@@ -814,33 +799,23 @@ vnonlocal <- snonlocal^2
 \section{Example RECOVERY trial}
 We now compute the above (minimum) support intervals for the data from the
 RECOVERY trial \citep{RECOVERY2021}. With the standard error $\sigma$ known, the
-minimum support intervals are fully specified and can be readily
-computed. %(row five to seven in Figure~\ref{fig:comparison}).
-For the normal, local normal, and the nonlocal normal moment prior
-%(row two to four in Figure~\ref{fig:comparison}),
-we choose their parameters as follows. The trial steering committee determined
-the sample size of the trial based on an assumed clinically relevant log hazard
-ratio of $\log \Sexpr{exp(m)} = \Sexpr{round(m, 2)}$. This effect size can be
-used to inform the normal prior under the alternative $\h{1}$, \ie{} we specify
-the mean $\mu_\theta = \Sexpr{round(m, 2)}$ along with the unit-information
-variance $\sigma_\theta^2 = \Sexpr{round(v, 2)}$ for a log hazard ratio
-\citep[ch. 2.4.2]{Spiegelhalter2004}. Likewise, we use the unit-information
-variance $\sigma_\theta^2 = \Sexpr{round(v, 2)}$ as the variance of the local
-normal prior. The scale parameter of the nonlocal moment prior $\sigma_{\theta}$
-is elicited with a similar approach as in \citet{Pramanik2022}; The value
+minimum support intervals are fully specified and can be readily For the normal,
+local normal, and the nonlocal normal moment prior we choose their parameters as
+follows. The trial steering committee determined the sample size of the trial
+based on an assumed clinically relevant log hazard ratio of
+$\log \Sexpr{exp(m)} = \Sexpr{round(m, 2)}$. This effect size can be used to
+inform the normal prior under the alternative $\h{1}$, \ie{} we specify the mean
+$\mu_\theta = \Sexpr{round(m, 2)}$ along with the unit-information variance
+$\sigma_\theta^2 = \Sexpr{round(v, 2)}$ for a log hazard ratio \citep[ch.
+2.4.2]{Spiegelhalter2004}. Likewise, we use the unit-information variance
+$\sigma_\theta^2 = \Sexpr{round(v, 2)}$ as the variance of the local normal
+prior. The scale parameter of the nonlocal moment prior $\sigma_{\theta}$ is
+elicited with a similar approach as in \citet{Pramanik2022}; The value
 $\sigma_\theta = \Sexpr{round(snonlocal, 2)}$ is selected so that
 \Sexpr{round(100*pnonlocal, 2)}\% probability mass is assigned to log hazard
-ratios between $(\theta_0 - \log2, \theta_0)$ and
-$(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double
-or half the hazard relative to the null value $\theta_0$.
-
-% One way to choose the scale parameter $s$ of the nonlocal prior is to fix
-% % the modes $\theta_0 \pm s \sqrt{2}$ or
-% two quantiles of the distribution so that plausible values of the effect size
-% receive a desired amount of probability. For instance, \citet{Pramanik2022}
-% choose $s = 0.2$ so that about 85\% of the probability mass is assigned to
-% effect sizes in $(0.2, 0.8)$ and $(-0.8, -0.2)$, representing the typical
-% range of standardized mean difference effect sizes in psychological research.
+ratios between $\theta_0 - \log2$ and $\theta_0 + \log 2$, representing effect
+sizes that at most half or double the mortality hazards relative to the null
+value $\theta_0$.
 
 << "compute-SI-RECOVERY" >>=
 ## compute different types of support intervals for different support levels k
@@ -940,13 +915,13 @@ plotA +
   mortality reduction $\mu_{\theta} = \log \Sexpr{exp(m)} = \Sexpr{round(m, 2)}$
   (as deemed by the trial steering committee) and has unit variance
   $\sigma_\theta^{2} = \Sexpr{round(v, 2)}$. The local normal prior also has
-  unit variance $\sigma_\theta^{2} = \Sexpr{round(v, 2)}$. The scale
-  parameter of the nonlocal normal moment prior is
+  unit variance $\sigma_\theta^{2} = \Sexpr{round(v, 2)}$. The scale parameter
+  of the nonlocal normal moment prior is
   $\sigma_\theta = \Sexpr{round(snonlocal, 2)}$ so that
   \Sexpr{round(100*pnonlocal, 2)}\% of the probability is assigned to log hazard
-  ratios between $(\theta_0 - \log 2, \theta_0)$ and
-  $(\theta_0, \theta_0 + \log 2)$, representing effect sizes that at most double
-  or half the mortality hazards relative to the null value $\theta_0$.}
+  ratios between $\theta_0 - \log2$ and $\theta_0 + \log 2$, representing effect
+  sizes that at most half or double the mortality hazards relative to the null
+  value $\theta_0$.}
     \label{fig:comparison}
 \end{figure*}
 
@@ -1050,9 +1025,10 @@ guarantee that the resulting $k$ support interval will span a desired length
     \label{eq:width}
     \ell = 2 \sigma \times \mbox{M}_k,
 \end{align}
-with $\mbox{M}_k$ the standard error multiplier of a $k$ support interval. In general,
-numerical methods are required for computing the $n$ such that~\eqref{eq:width} is
-satisfied, yet again for the support interval based on Jeffrey's approximate Bayes factor
+with $\mbox{M}_k$ the standard error multiplier of a $k$ support interval. In
+general, numerical methods are required for computing the $n$ such
+that~\eqref{eq:width} is satisfied, yet again for the support interval based on
+Jeffrey's approximate Bayes factor
 %($\mbox{M}_k = \{\log(1 + n) - 2\log k\}$)
 there are explicit solutions available
 \begin{align}
@@ -1136,39 +1112,21 @@ A $k < 1$ support interval will usually be wider than a standard $(1 - k)\%$
 confidence interval. On the other hand, a $k < 1$ support interval has at least
 $(1 - k)\%$ coverage, even under optional stopping (at least for point null
 hypotheses as is the case here), which is not satisfied by a standard
-$(1 - k)\%$ confidence interval.
-% This is the price that has to be paid for more flexible error control.
-Due to their property of valid coverage based on \emph{arbitrary number} of
-looks at the data, $k < 1$ support interval will also typically be wider than
-$(1 - k)\%$ confidence intervals adjusted via group sequential or adaptive trial
-methodology which are more fine-tuned to specific interim analysis strategies
-\citep{Wassmer2016}. These strategies are, however, typically more restrictive
-and computationally involved compared to the flexible and easily computable
-$k < 1$ support intervals which we present here.
-% However, from a practical perspective
-% intervals
-% obtained from support intervals
-% % We are not claiming that support intervals are more efficient
-% % in controlling error rates than other types of adjustment methods, but
-% are flexible and easy to implement.
-% they do not require specification of the
-% number of interim analyses beforehand (\eg{} as for Pocock or O'Brien Fleming
-% corrections) or the recalculation of the alpha level when an interim analysis is
-% performed (\eg{} as for alpha spending functions).
-% This makes support intervals
-% a suitable tool when evidence quantification is the highest priority for
-% data analysts, with error control as a secondary objective.
+$(1 - k)\%$ confidence interval. Due to their property of valid coverage based
+on \emph{arbitrary number} of looks at the data, $k < 1$ support interval will
+also typically be wider than $(1 - k)\%$ confidence intervals adjusted via group
+sequential or adaptive trial methodology which are more fine-tuned to specific
+interim analysis strategies \citep{Wassmer2016}. These strategies are, however,
+typically more restrictive and computationally involved compared to the flexible
+and easily computable $k < 1$ support intervals which we present here.
 
 It must be noted that the coverage bound~\eqref{eq:covbound} only holds for
 support intervals but not for minimum support intervals. This is because the
 minimum support intervals are derived based on priors that depend on the data,
-which violates the assumption of the universal bound.
-% Since the coverage of confidence intervals is not controlled when
-% repeated looks at accumulating data are performed, the same also holds true for
-% minimum support intervals.
-Minimum support intervals are thus only useful for giving confidence intervals
-an evidential interpretation, but a $k$ minimum support interval with $k < 1$,
-itself does not provide $(1 - k)\%$ coverage under optional stopping.
+which violates the assumption of the universal bound. Minimum support intervals
+are thus only useful for giving confidence intervals an evidential
+interpretation, but a $k$ minimum support interval with $k < 1$, itself does not
+provide $(1 - k)\%$ coverage under optional stopping.
 
 
 \section{Discussion}
@@ -1246,10 +1204,8 @@ It is also not clear which support level $k$ should be used for computing
 support intervals. If space permits, we recommend to visualize the Bayes factor
 as a function of the null value as in Figure~\ref{fig:example}. This approach
 provides readers with a more gradual assessment of support, and any desired $k$
-support interval can be read of from it. If there are space constraints,
-%(for instance, when one computes support
-%intervals for a number of regression coefficients),
-a compromise is to report support intervals for different levels (\eg{}
+support interval can be read off from it. If there are space constraints, a
+compromise is to report support intervals for different levels (\eg{}
 $k \in \{1/10, 1, 10\}$) or to present a forest plot with ``telescope'' style
 support intervals with ascending support levels stacked on top of each other, as
 in Figure~\ref{fig:comparison}. We are hesitant to recommend a ``default''
@@ -1272,11 +1228,6 @@ under the alternative hypothesis is unavoidable. Compatibility intervals are in
 this sense similar to minimum support intervals; without a specified prior under
 the alternative hypothesis only the maximum surprisal/evidence \emph{against}
 the included parameter values can be quantified.
-% This fact is also illustrated through the proposed minimum support intervals
-% which can be one-to-one mapped to bits of refutational surprisal (since both
-% can be mapped to confidence levels); without a specific alternative hypothesis
-% only the maximum evidence \emph{against} the included parameter values can be
-% quantified.
 
 We also showed how the coverage of $k$ support intervals with $k < 1$ is bounded
 by $(1 - k)\%$, which holds even under sequential analyses with optional
@@ -1292,8 +1243,8 @@ and parameter distribution yield on out-of-sample data \citep{Kass1995,
   OHagan2004, Gneiting2007a}. Such ``descriptive inferential statistics'' are
 especially important for the analysis of convenience data samples which
 typically violate assumptions of the underlying statistical model
-% , so that overconfident error-rate statements are not appropriate
-% leading to overconfident error rate statements from $p$-values and confidence intervals
+% , so that overconfident error-rate statements are not appropriate leading to
+% overconfident error rate statements from $p$-values and confidence intervals
 % are overconfident
 \citep{Amrhein2019, Shafer2021}. In fact, even one of the best known proponents
 of $p$-values --R.A. Fisher-- noted ``For all purposes, and more particularly

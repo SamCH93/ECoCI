@@ -115,7 +115,7 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
         % more conservative minimum support intervals that may better reflect
         % the available evidence.
         We also illustrate how the sample size of a future study can be
-        determined based on the concept of support. Finally we show how the
+        determined based on the concept of support. Finally, we show how the
         universal bound for the type-I error rate of Bayes factors leads to a
         bound for the coverage of support intervals, holding even under
         sequential analyses with optional stopping. An application to data from
