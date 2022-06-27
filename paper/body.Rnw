@@ -318,7 +318,7 @@ To construct a support interval for $\theta$, specification of a prior for
 $\theta$ under the alternative $\h{1}$ is required. Specifying a normal prior
 $\theta \given \h{1} \sim \Nor(\mu_\theta, \sigma_\theta^2)$ results in the
 Bayes factor
-% %% uncomment for long equation
+% %% uncomment for short equation
 % \begin{align}
 %     \label{eq:bf01}
 %   \BF_{01}(\that; \theta_0)
