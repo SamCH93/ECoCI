@@ -801,7 +801,7 @@ vnonlocal <- snonlocal^2
 \section{Example RECOVERY trial}
 We now compute the above (minimum) support intervals for the data from the
 RECOVERY trial \citep{RECOVERY2021}. With the standard error $\sigma$ known, the
-minimum support intervals are fully specified and can be readily For the normal,
+minimum support intervals are fully specified and can be readily computed. For the normal,
 local normal, and the nonlocal normal moment prior we choose their parameters as
 follows. The trial steering committee determined the sample size of the trial
 based on an assumed clinically relevant log hazard ratio of
