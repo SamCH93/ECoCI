@@ -165,6 +165,7 @@ type <- "preprint"
 cat("\\newpage \\section*{Computational details}")
 @
 << "sessionInfo2", echo = Reproducibility, results = Reproducibility, size = codeFont >>=
+cat(paste(Sys.time(), Sys.timezone(), "\n"))
 sessionInfo()
 @
 

@@ -266,8 +266,8 @@ In this article we shed light on the connection between support and confidence
 sets. Specifically, we provide methods for calibrating approximate confidence
 sets to approximate support sets and vice versa in the important case when the
 data consists of an estimate of a univariate parameter $\theta$ with approximate
-normal likelihood (Section~\ref{sec:SInormality}). Our main results are easy to
-use formulas for computing support intervals that only require summary
+normal likelihood (Section~\ref{sec:SInormality}). Our main results are
+easy-to-use formulas for computing support intervals that only require summary
 statistics typically reported in research articles, \eg{} point estimates,
 standard errors, or confidence intervals. Calibrating confidence to support
 intervals requires the specification of a prior distribution for $\theta$ under
@@ -493,8 +493,8 @@ from which the corresponding $k$ support interval can be derived to be
   \sqrt{\left[2 \lw{0}\left\{\frac{(1 + \sigma_\theta^2/\sigma^2)^{3/2} \sqrt{e}}{2 k}\right\} - 1\right]
   \left(1 + \frac{\sigma^2}{\sigma_\theta^2}\right)}
 \end{align}
-with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function
-\citep{Corless1996}. It is possible that the support
+with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function, see
+Appendix~\ref{app:lambertW} for more details. It is possible that the support
 interval~\eqref{eq:sinonlocal} does not exist, as for the other two types of
 support intervals. This happens when the Lambert W term is smaller than one half
 so that the square root is undefined. Since
@@ -558,9 +558,9 @@ Bayes factor is given by
   \minBF_{01}(\that ; \theta_0) =
   \exp\left\{-\frac{1}{2}  \frac{(\that - \theta_0)^{2}}{\sigma^{2}}\right\},
 \end{align}
-which equals the standard likelihood ratio test statistic when $\that$ is the
-MLE. Inverting~\eqref{eq:minBFsimple} for $\theta_0$ leads to the $k$ minimum
-support interval
+for which twice the negative log equals the standard likelihood ratio test
+statistic when $\that$ is the MLE. Inverting~\eqref{eq:minBFsimple} for
+$\theta_0$ leads to the $k$ minimum support interval
 \begin{align}
     \label{eq:sisimple}
   \that \pm \sigma \times \sqrt{-2\log k}.
@@ -618,11 +618,11 @@ solving for $\theta_0$ leads then to the $k$ minimum support interval
   \that \pm \sigma \times \sqrt{-\lw{-1}(-k^2/e)},
 \end{align}
 with $\lw{-1}(\cdot)$ the branch of the Lambert W function that satisfies
-$\mbox{W}(y) \leq -1$ for $y \in [-e^{-1}, 0)$ \citep{Corless1996}. For $k = 1$,
-the standard error multiplier becomes $\mbox{M} = \sqrt{-\lw{-1}(-1/e)} = 1$.
-Hence, the data provide support for all parameter values within one standard
-error around the observed parameter estimate $\that$ when the class of priors
-for the parameter is given by local normal alternatives.
+$\mbox{W}(y) \leq -1$ for $y \in [-e^{-1}, 0)$. For $k = 1$, the standard error
+multiplier becomes $\mbox{M} = \sqrt{-\lw{-1}(-1/e)} = 1$. Hence, the data
+provide support for all parameter values within one standard error around the
+observed parameter estimate $\that$ when the class of priors for the parameter
+is given by local normal alternatives.
 
 
 \subsection{Class of \textit{p}-based alternatives}
@@ -801,10 +801,10 @@ vnonlocal <- snonlocal^2
 \section{Example RECOVERY trial}
 We now compute the above (minimum) support intervals for the data from the
 RECOVERY trial \citep{RECOVERY2021}. With the standard error $\sigma$ known, the
-minimum support intervals are fully specified and can be readily For the normal,
-local normal, and the nonlocal normal moment prior we choose their parameters as
-follows. The trial steering committee determined the sample size of the trial
-based on an assumed clinically relevant log hazard ratio of
+minimum support intervals are fully specified and can be readily computed. For
+the normal, local normal, and the nonlocal normal moment prior we choose their
+parameters as follows. The trial steering committee determined the sample size
+of the trial based on an assumed clinically relevant log hazard ratio of
 $\log \Sexpr{exp(m)} = \Sexpr{round(m, 2)}$. This effect size can be used to
 inform the normal prior under the alternative $\h{1}$, \ie{} we specify the mean
 $\mu_\theta = \Sexpr{round(m, 2)}$ along with the unit-information variance
@@ -1101,8 +1101,8 @@ special types of priors are assigned to the nuisance parameters
 \citep{Hendriksen2021}.
 
 For the case of a univariate parameter $\theta$ as considered earlier,
-construction of $(1 - k)\%$ approximate confidence interval via the the normal
-prior support interval from~\eqref{eq:si} corresponds to the proposal by
+construction of $(1 - k)100\%$ approximate confidence interval via the the
+normal prior support interval from~\eqref{eq:si} corresponds to the proposal by
 \citet{Pace2020}. These authors studied this particular case in detail and gave
 also frequentist motivations for the prior distributions interpreting them as
 weighting functions. Moreover, they found that the method is also applicable to
@@ -1110,13 +1110,13 @@ parameter estimates from marginal, conditional, and profile likelihoods, and
 that the coverage of the intervals is controlled even under slight model
 misspecifications. We refer to \citet{Pace2020} for further details.
 
-A $k < 1$ support interval will usually be wider than a standard $(1 - k)\%$
+A $k < 1$ support interval will usually be wider than a standard $(1 - k)100\%$
 confidence interval. On the other hand, a $k < 1$ support interval has at least
-$(1 - k)\%$ coverage, even under optional stopping (at least for point null
+$(1 - k)100\%$ coverage, even under optional stopping (at least for point null
 hypotheses as is the case here), which is not satisfied by a standard
 $(1 - k)\%$ confidence interval. Due to their property of valid coverage based
 on \emph{arbitrary number} of looks at the data, $k < 1$ support interval will
-also typically be wider than $(1 - k)\%$ confidence intervals adjusted via group
+also typically be wider than $(1 - k)100\%$ confidence intervals adjusted via group
 sequential or adaptive trial methodology which are more fine-tuned to specific
 interim analysis strategies \citep{Wassmer2016}. These strategies are, however,
 typically more restrictive and computationally involved compared to the flexible
@@ -1128,7 +1128,7 @@ minimum support intervals are derived based on priors that depend on the data,
 which violates the assumption of the universal bound. Minimum support intervals
 are thus only useful for giving confidence intervals an evidential
 interpretation, but a $k$ minimum support interval with $k < 1$, itself does not
-provide $(1 - k)\%$ coverage under optional stopping.
+provide $(1 - k)100\%$ coverage under optional stopping.
 
 
 \section{Discussion}
@@ -1136,7 +1136,7 @@ Misinterpretations and misconceptions of confidence intervals are common
 \citep{Hoekstra2014, Greenland2016}. We showed how confidence intervals can be
 reinterpreted as minimum support intervals which have an intuitive
 interpretation in terms of the minimum evidence that the data provide for the
-included parameter values. We also obtained easy to use formulas for different
+included parameter values. We also obtained easy-to-use formulas for different
 types of support intervals for an unknown parameter based on an estimate and
 standard error thereof. Table~\ref{tab:summary} summarizes our results.
 
@@ -1159,14 +1159,14 @@ standard error thereof. Table~\ref{tab:summary} summarizes our results.
       the local normal prior, and scale $\sigma_\theta$ for the nonlocal normal
       moment prior. The quantile function of the standard normal distribution is
       denoted by $\Phi^{-1}(\cdot)$, $\lw{0}(\cdot)$ denotes the principal
-      branch of the Lambert W function \citep{Corless1996}, and $\lw{-1}(\cdot)$
-      denotes the branch that satisfies $\mbox{W}(y) \leq 1$ for
-      $y \in [-1/e, 0)$. The respective (minimum) support intervals only exist
-      for support levels $k$ for which the standard error multiplier is
-      real-valued, \ie{} the respective term in the square root needs to be
-      non-negative and/or the argument for $\lw{-1}(\cdot)$ needs to be in
-      $[-1/e, 0)$. All interval types can be computed with the R package
-      \texttt{ciCalibrate} (Appendix~\ref{app:Rpkg}).}
+      branch of the Lambert W function, and $\lw{-1}(\cdot)$ denotes the branch
+      that satisfies $\mbox{W}(y) < 1$ for $y \in (-1/e, 0)$, see
+      Appendix~\ref{app:lambertW} for more details. The respective (minimum)
+      support intervals only exist for support levels $k$ for which the standard
+      error multiplier is real-valued, \ie{} the respective term in the square
+      root needs to be non-negative and/or the argument for $\lw{-1}(\cdot)$
+      needs to be in $[-1/e, 0)$. All interval types can be computed with the R
+      package \texttt{ciCalibrate} (Appendix~\ref{app:Rpkg}).}
     \label{tab:summary}
     \begin{tabular}{lll}
     \toprule
@@ -1232,7 +1232,7 @@ the alternative hypothesis only the maximum surprisal/evidence \emph{against}
 the included parameter values can be quantified.
 
 We also showed how the coverage of $k$ support intervals with $k < 1$ is bounded
-by $(1 - k)\%$, which holds even under sequential analyses with optional
+by $(1 - k)100\%$, which holds even under sequential analyses with optional
 stopping. For instance, a $k = 1/20$ support interval has valid $95\%$ coverage.
 Of course, such error rate guarantees rest on the assumption that the data model
 has been correctly specified, which in most real world applications will be
@@ -1277,7 +1277,8 @@ We thank Leonhard Held for helpful comments on an earlier version of the
 manuscript. We thank Michael Lindon for interesting discussions and letting us
 know about his work on the connection between support and confidence sets. We
 thank Glenn Shafer for attending us about R.A. Fisher's work on relative
-likelihood. Our acknowledgement of these individuals does not imply their
+likelihood. We thank Sander Greenland for valuable feedback on the first version
+of the manuscript. Our acknowledgement of these individuals does not imply their
 endorsement of this article. This work was supported in part by an NWO Vici
 grant (016.Vici.170.083) to EJW, and a Swiss National Science Foundation
 mobility grant (part of 189295) to SP.
@@ -1306,6 +1307,18 @@ mobility grant (part of 189295) to SP.
 % be one. A generalization of this result to sequential analysis of data was
 % first established by \citet{Robbins1970}. Appendix A1 in \citet{Pace2020}
 % gives his original proof in modern notation.
+
+\section{The Lambert W function}
+\label{app:lambertW}
+The Lambert W function is the function $\text{W}(\cdot)$ satisfying
+\begin{align*}
+  \text{W}(x) \, \exp\{\text{W}(x)\} = x.
+\end{align*}
+For real $x$, it is defined for $x \in [-1/e, \infty)$. For $x \geq 0$ the
+function is unique, whereas in the interval $x \in (-1/e, 0)$, the function has
+two branches -- $\lw{0}(x) > -1$ for all $x \in (-1/e, 0)$ termed the principal
+branch, and $\lw{-1}(x) < -1$ for all $x \in (-1/e, 0)$. More details can be
+found in \citet{Corless1996}.
 
 \section{The ciCalibrate package}
 \label{app:Rpkg}
