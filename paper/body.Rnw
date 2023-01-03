@@ -751,15 +751,15 @@ ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type)) +
     expand_limits(y = 1.5) +
     coord_cartesian(xlim = c(95, 99.9), ylim = c(1/250, 1.3)) +
     labs(y = bquote("Minimum support level" ~ italic(k)),
-         x = bquote("Confidence level" ~ (1 - alpha)*"%"),
+         x = bquote("Confidence level" ~ (1 - alpha) %*% "100%"),
          color = "") +
     scale_color_brewer(palette = "Dark2", labels = scales::parse_format()) +
     theme_bw() +
     theme(legend.position = "top", panel.grid.minor = element_blank(),
           legend.text = element_text(size = 7.5))
 @
-\caption{Mapping between confidence level $(1 - \alpha)\%$ and minimum support
-  level $k$ for different types of minimum support intervals.}
+\caption{Mapping between confidence level $(1 - \alpha)\times100\%$ and minimum
+  support level $k$ for different types of minimum support intervals.}
     \label{fig:mappingCIk}
   \end{figure*}
 
@@ -1333,10 +1333,12 @@ function.
 logHRci <- c(-0.29, -0.07)
 ## compute a support interval with level k = 10
 library("ciCalibrate")
-si10 <- ciCalibrate(ci = logHRci, ciLevel = 0.95,
+si10 <- ciCalibrate(ci = logHRci,
+                    ciLevel = 0.95,
                     siLevel = 10,
                     method = "SI-normal",
-                    priorMean = 0, priorSD = 2)
+                    priorMean = 0,
+                    priorSD = 2)
 si10
 ## plot Bayes factor function with support interval
 plot(si10)
