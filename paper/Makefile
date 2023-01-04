@@ -9,10 +9,6 @@ BIBSTYLE=apalikedoiurl
 tex: $(FILE).Rnw $(BIB).bib $(BIBSTYLE).bst
 	Rscript -e "knitr::knit('$(FILE).Rnw')" --vanilla
 
-## generate .tex file from .Rnw file with knitr using journal template
-texjournal: $(FILE)Journal.Rnw
-	Rscript -e "knitr::knit('$(FILE)Journal.Rnw')" --vanilla
-
 ## generate .pdf file from .tex file
 pdf: tex
 	pdflatex $(FILE)
@@ -20,12 +16,6 @@ pdf: tex
 	pdflatex $(FILE)
 	pdflatex $(FILE)
 
-## generate .pdf file from .tex file using journal template
-pdfjournal: texjournal
-	pdflatex $(FILE)Journal
-	bibtex $(FILE)Journal
-	pdflatex $(FILE)Journal
-	pdflatex $(FILE)Journal
 
 ## generate .pdf file from .tex (without first running the tex recipe)
 pdf2:
@@ -47,9 +37,6 @@ docx: tex
 
 ## clean
 clean:  
-	rm $(FILE).aux  $(FILE).blg  $(FILE).log  $(FILE).tex  $(FILE).bbl \
-	$(FILE).out  $(FILE).brf  $(FILE).synctex.gz \
-	$(FILE)Journal.aux  $(FILE)Journal.blg  $(FILE)Journal.log  $(FILE)Journal.tex \
-	$(FILE)Journal.bbl  $(FILE)Journal.out  $(FILE)Journal.brf \
-	$(FILE)Journal.synctex.gz; \
-	rm -r ./figure/
+	-rm $(FILE).aux  $(FILE).blg  $(FILE).log  $(FILE).tex  $(FILE).bbl \
+	$(FILE).out  $(FILE).brf  $(FILE).synctex.gz
+	-rm -r ./figure/
