@@ -93,26 +93,25 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
   \begin{minipage}{14cm} {\small
       \rule{\textwidth}{0.5pt} \\
       {\centering \textbf{Abstract} \\
-        We present a novel and easy to use method for calibrating error-rate
+        We present a novel and easy-to-use method for calibrating error-rate
         based confidence intervals to evidence-based support intervals. Support
-        intervals are obtained from inverting Bayes factors based on the point
-        estimate and standard error of a parameter estimate. A $k$~support
-        interval can be interpreted as ``the interval contains parameter values
-        under which the observed data are at least $k$ times more likely than
-        under a specified alternative hypothesis''. Support intervals depend on
-        the specification of a prior distribution for the parameter under the
-        alternative, and we present several types that allow data analysts to
-        encode different forms of external knowledge. We also show how prior
-        specification can to some extent be avoided by considering a class of
-        prior distributions and then computing so-called minimum support
-        intervals which, for a given class of priors, have a one-to-one mapping
-        with confidence intervals. We also illustrate how the sample size of a
-        future study can be determined based on the concept of support. Finally,
-        we show how the universal bound for the type-I error rate of Bayes
-        factors leads to a bound for the coverage of support intervals, holding
-        even under sequential analyses with optional stopping. An application to
-        data from a clinical trial illustrates how support intervals can lead to
-        inferences that are both intuitive and informative.}
+        intervals are obtained from inverting Bayes factors based on a parameter
+        estimate and its standard error. A $k$~support interval can be
+        interpreted as ``the observed data are at least $k$ times more likely
+        under the included parameter values than under a specified
+        alternative''. Support intervals depend on the specification of prior
+        distributions for the parameter under the alternative, and we present
+        several types that allow different forms of external knowledge to be
+        encoded. We also show how prior specification can to some extent be
+        avoided by considering a class of prior distributions and then computing
+        so-called minimum support intervals which, for a given class of priors,
+        have a one-to-one mapping with confidence intervals. We also illustrate
+        how the sample size of a future study can be determined based on the
+        concept of support. Finally, we show how the bound for the type-I error
+        rate of Bayes factors leads to a bound for the coverage of support
+        intervals. An application to data from a clinical trial illustrates how
+        support intervals can lead to inferences that are both intuitive and
+        informative.}
       \rule{\textwidth}{0.4pt} \\
       \textit{Keywords}: Bayes factor, coverage, evidence, support interval,
       universal bound}
