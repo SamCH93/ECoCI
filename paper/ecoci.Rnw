@@ -25,8 +25,8 @@
   bottom=25mm,
 }
 
-%% title, authors, affiliations, mail
-%% ----------------------------------------------------------------------------
+% %% title, authors, affiliations, mail
+% %% ----------------------------------------------------------------------------
 \newcommand\longtitle{Evidential Calibration of Confidence Intervals}
 \newcommand\shorttitle{Evidential Calibration of Confidence Intervals} % if longtitle too long, change here
 \newcommand\subtitle{}
@@ -50,6 +50,27 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
   \affiliation \\
   E-mail: \href{mailto:\mail}{\mail}
 }
+% \newcommand\longtitle{Evidential Calibration of Confidence Intervals}
+% \newcommand\shorttitle{Evidential Calibration of Confidence Intervals} % if longtitle too long, change here
+% \newcommand\subtitle{}
+% \newcommand\longauthors{~}
+% \newcommand\shortauthors{~} % if longauthors too long, change here
+% \newcommand\affiliation{
+%   ~ \\
+%   ~ \\
+%   ~
+% }
+% \newcommand\mail{~}
+% \title{
+%   \vspace{-2.5em}
+%   \textbf{\longtitle} \\
+%   \subtitle
+% }
+% \author{
+%   \textbf{\longauthors} \\
+%   \affiliation \\
+%   ~
+% }
 \date{\today} %don't forget to hard-code date when submitting to arXiv!
 
 %% hyperref options
@@ -1070,10 +1091,9 @@ plotA +
     geom_point(data = subset(plotDF, type == ciName),
                aes(x = type, y = est), size = 0.9, color = 1, alpha = 1) +
                #shape = "square") +
-    labs(x = "", y = bquote("Log hazard ratio" ~ theta),
-         color = bquote("Support level" ~ italic(k))) +
+    labs(x = "", y = bquote("Log hazard ratio" ~ theta)) +
     scale_x_discrete(labels = function(l) parse(text = l)) +
-    scale_color_manual(values = cols) +
+    scale_color_manual(breaks = names(cols), values = cols, name = bquote("Support level" ~ italic(k))) +
     coord_flip() +
     theme_bw() +
     theme(legend.position = "top",
@@ -1443,7 +1463,9 @@ were extracted from the abstract of \citet{RECOVERY2021}. All analyses were
 conducted in the R programming language version
 \Sexpr{paste(version$major, version$minor, sep = ".")}. Code and data for
 reproducing the results in this manuscript are available at
-\url{https://github.com/SamCH93/ECoCI}. A snapshot of the GitHub repository at
+%\url{https://github.com/XXXX}.
+\url{https://github.com/SamCH93/ECoCI}.
+A snapshot of the GitHub repository at
 the time of writing this article is archived at
 \url{https://doi.org/10.5281/zenodo.6723249}. An R package for calibration of
 confidence intervals to (minimum) support intervals is available at
@@ -1503,9 +1525,10 @@ mobility grant (part of 189295) to SP.
 \label{app:Rpkg}
 We provide an R implementation of the support intervals and underlying Bayes
 factor functions from Table~\ref{tab:summary}. The package is available at
-\url{https://github.com/SamCH93/ciCalibrate}. The following code snippet
-illustrates the computation and plotting of support interval and Bayes factor
-function.
+\url{https://github.com/SamCH93/ciCalibrate}.
+% \url{https://github.com/XXXX}.
+The following code snippet illustrates the computation and plotting of support
+interval and Bayes factor function.
 
 << "code-snippet-ciCalibrate", echo = TRUE, fig.height = 3.5, size = codeFont >>=
 ## 95% CI from RECOVERY trial
