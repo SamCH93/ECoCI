@@ -1,5 +1,5 @@
 ## set R version (https://hub.docker.com/r/rocker/verse/tags)
-FROM rocker/verse:4.2
+FROM rocker/verse:4.3
 
 ## name of the manuscript (as in Makefile and paper/Makefile)
 ENV FILE=ecoci
@@ -22,10 +22,10 @@ WORKDIR /analysis
 RUN install2.r --error --skipinstalled --ncpus -1 \
     `cat CRANpackages.txt`
 
-## install R packages from GitHub (use @ for specific version/tag)
-## install from tar.gz in repository if this does not work anymore in the future
-RUN installGithub.r \
-    SamCH93/ciCalibrate@preprint1
+# ## install R packages from GitHub (use @ for specific version/tag)
+# ## install from tar.gz in repository if this does not work anymore in the future
+# RUN installGithub.r \
+#     SamCH93/ciCalibrate@preprint1
 
 ## knit Rnw to tex and compile tex to PDF
 CMD if [ "$pdfdocker" = "false" ] ; then \

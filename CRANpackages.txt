@@ -1,4 +1,5 @@
 knitr
+ciCalibrate
 ggplot2
 lamW
 colorspace
