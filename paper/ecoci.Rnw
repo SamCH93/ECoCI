@@ -427,12 +427,12 @@ parameter $\theta$, possibly the maximum likelihood estimator (MLE). Suppose its
 squared standard error $\sigma^2$ is an estimate of the asymptotic variance of
 $\that$, so that an approximate normal likelihood
 $\that \given \theta \sim \Nor(\theta, \sigma^{2})$ is justifiable. For example,
-$\that$ could be an estimated regression coefficient from generalized linear
+$\that$ could be an estimated regression coefficient from a generalized linear
 model and $\sigma$ its standard error. In many simple settings, the standard
 error is of the form $\sigma = \lambda/\sqrt{n}$, where $\lambda^2$ is the
 variance corresponding to one effective unit and $n$ is the effective sample
 size, for example, the number of measurements or the number of events
-\citep[section 2.4]{Spiegelhalter2004}, see also \citet{Berger2013} for a
+\citep[Section 2.4]{Spiegelhalter2004}, see also \citet{Berger2013} for a
 generalization of effective sample size to more complex settings with dependent
 data. An approximate $(1 - \alpha)100\%$~confidence interval for $\theta$ is
 given by
@@ -633,17 +633,17 @@ from which the corresponding $k$ support interval can be derived to be
   \sqrt{\left[2 \lw{0}\left\{\frac{(1 + \sigma_\theta^2/\sigma^2)^{3/2} \sqrt{e}}{2 k}\right\} - 1\right]
   \left(1 + \frac{\sigma^2}{\sigma_\theta^2}\right)}
 \end{align}
-with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function. The Lambert W function is the (complex) multivalued function $\text{W}(\cdot)$ satisfying $\text{W}(x)
-\, \exp\{\text{W}(x)\} = x$. For real $x$, it is defined for $x \in [-1/e,
-\infty)$. For $x \geq
+with $\lw{0}(\cdot)$ denoting the principal branch of the Lambert W function.
+The Lambert W function is the (complex) multivalued function $\text{W}(\cdot)$
+satisfying $\text{W}(x)\, \exp\{\text{W}(x)\} = x$. For real $x$, it is defined
+for $x \in [-1/e,\infty)$. For $x \geq
 0$ the function has a unique value, whereas in the interval $x \in (-1/e,
 0)$, the function has two branches: $\lw{0}(x) > -1$ for all $x \in (-1/e,
 0)$ termed the principal branch, and $\lw{-1}(x) < -1$ for all $x \in (-1/e,
-0)$, see \citet{Corless1996} for more details. It is possible that the support interval~\eqref{eq:sinonlocal} is empty, as for the other two types of support intervals. This happens when the Lambert W term is smaller than one half so that the square root is undefined. Since $\lw{0}(\Sexpr{round(lArg, 2)}) \approx 1/2$, this situations occurs when
-$(1 + \sigma_\theta^2/\sigma^2)^{3/2} < \Sexpr{round(lArg, 2)} \times 2k\sqrt{e}$,
-meaning that the standard error $\sigma$ has to be sufficiently small relative
-to the prior spread parameter $\sigma_\theta$ and the support level $k$, so that
-the interval is non-empty.
+0)$, see \citet{Corless1996} for more details. It is possible that the support interval~\eqref{eq:sinonlocal} is empty, as for the other two types of support intervals. This happens when the Lambert W term is smaller than one half so that the square root is undefined. Since $\lw{0}(\Sexpr{round(lArg,
+  2)}) \approx 1/2$, this situations occurs when $(1 +
+\sigma_\theta^2/\sigma^2)^{3/2} < \Sexpr{round(lArg, 2)} \times
+2k\sqrt{e}$, meaning that the standard error $\sigma$ has to be sufficiently small relative to the prior spread parameter $\sigma_\theta$ and the support level $k$, so that the interval is non-empty.
 
 \begin{figure}[!htb]
 << "compare-priors-growth", fig.height = 5 >>=
@@ -788,12 +788,12 @@ ggpubr::ggarrange(plotA, plotB, ncol = 1, common.legend = TRUE, align = "hv")
 \caption{Comparison of prior distributions for the parameter $\theta$ under the
   alternative $\h{1}$ in terms of resulting support interval width and highest
   level for which it is non-empty. A data model
-  $\that \given \theta \sim \Nor(\theta, \lambda^{2}/n = \Sexpr{unitvar}/n)$ is
-  assumed in all cases. The prior scale/spread parameter is set to
+  \mbox{$\that \given \theta \sim \Nor(\theta, \lambda^{2}/n = \Sexpr{unitvar}/n)$}
+  is assumed in all cases. The prior scale/spread parameter is set to
   $\sigma_{\theta} = \Sexpr{sqrt(unitvar)}$. The normal prior (correct mean) has
-  mean equal to the parameter estimate $\that$, while the normal prior (wrong
-  mean) has mean one standard deviation $\lambda = \Sexpr{sqrt(unitvar)}$ away
-  from $\that$.}
+  a mean equal to the parameter estimate $\that$, while the normal prior (wrong
+  mean) has a mean one standard deviation $\lambda = \Sexpr{sqrt(unitvar)}$
+  away from $\that$.}
 \label{fig:priorComparison}
 \end{figure}
 
@@ -805,29 +805,30 @@ To better understand the advantages and disadvantages of the previously
 discussed priors, the resulting support intervals
 % priors based on normal priors~\eqref{eq:si}, local normal
 % priors~\eqref{eq:silocal}, and nonlocal normal priors~\eqref{eq:sinonlocal}
-can be compared in terms of their width (Figure~\ref{fig:priorComparison} top)
-as a function of the sample size $n$. For small sample sizes, the normal
-(correct mean) prior produces the narrowest support intervals, followed by the
-local normal, the normal (wrong mean), and the nonlocal normal moment prior.
-Thus, a well-chosen normal prior can increase the precision of support
-inference, whereas a poorly chosen normal prior can decrease precision. However,
-the differences in width between the priors mostly disappear with increasing
-sample size. In the realistic range between 10 and a few hundred samples, the
-local normal prior seems to be a reasonable choice, as it leads to support
-intervals almost as narrow as the normal (correct mean) prior, without the need
-to specify a mean.
+can be compared in terms of their width as a function of the sample size $n$
+(Figure~\ref{fig:priorComparison} top). For small sample sizes, the normal prior
+with mean equal to the observed parameter estimate produces the narrowest
+$k = 1$ support intervals, followed by the local normal prior, the normal prior
+with mean one standard deviation away from the observed estimate, and lastly the
+nonlocal normal moment prior. Thus, a well-chosen normal prior can increase the
+precision of support inference, whereas a poorly chosen normal prior can
+decrease precision. However, the differences in width between the priors mostly
+disappear with increasing sample size. In the realistic range between ten and a
+few hundred samples, the local normal prior seems to be a reasonable default
+choice, as it leads to support intervals almost as narrow as the normal (correct
+mean) prior, without the need to specify a mean.
 
 Another aspect in which the priors can be compared is the highest support level
 $k$ for which the resulting support intervals are non-empty
 (Figure~\ref{fig:priorComparison} bottom). We see that for the same sample size
-$n$, the highest levels from the normal and local normal priors are similar and
-show the same growth rates, while the level from the nonlocal moment prior is
-higher and grows much faster. This is expected because nonlocal priors are
-specifically designed to produce Bayes factors with faster accumulation of
-evidence for the null hypothesis. Although nonlocal moment priors result in
-wider support intervals than the other priors, for small sample sizes, they may
-be the only prior type that can even produce a support interval at, say,
-Jeffreys' strong evidence level $k = 10$.
+$n$, the highest support levels from the normal and local normal priors are
+similar and show the same growth rates, while the highest support level from the
+nonlocal moment prior is higher and grows much faster. This is expected because
+nonlocal priors are designed to produce Bayes factors with faster accumulation
+of evidence for the null hypothesis. Thus, although nonlocal moment priors
+result in wider support intervals than the other priors, for small sample sizes
+they may be the only type of prior that can produce a support interval at, say,
+Jeffreys's strong evidence level $k = 10$.
 
 
 \section{Support intervals based on Bayes factor bounds}
@@ -1147,7 +1148,7 @@ of the trial based on an assumed clinically relevant log hazard ratio of
 $\log \Sexpr{exp(m)} = \Sexpr{round(m, 2)}$. This effect size can be used to
 inform the normal prior under the alternative $\h{1}$, \ie{} we specify the mean
 $\mu_\theta = \Sexpr{round(m, 2)}$ along with the unit-information variance
-$\sigma_\theta^2 = \Sexpr{round(v, 2)}$ for a log hazard ratio \citep[section
+$\sigma_\theta^2 = \Sexpr{round(v, 2)}$ for a log hazard ratio \citep[Section
 2.4.2]{Spiegelhalter2004}. Likewise, we use the unit-information variance
 $\sigma_\theta^2 = \Sexpr{round(v, 2)}$ as the variance of the local normal
 prior. The spread parameter of the nonlocal moment prior $\sigma_{\theta}$ is
@@ -1399,7 +1400,7 @@ computed compared to a study employing the smaller sample size $n_1$.
 
 \section{Error control via the universal bound}
 \label{sec:t1e}
-The universal bound \citep[section 1.4]{Royall1997} ensures that for $k < 1$ and
+The universal bound \citep[Section 1.4]{Royall1997} ensures that for $k < 1$ and
 when the null hypothesis $\h{0} \colon \theta = \theta_0$ is true, the
 probability for finding evidence at most of level $k$ for $\h{0}$ cannot be
 larger than $k$, that is
@@ -1640,7 +1641,7 @@ Swiss National Science Foundation mobility grant (part of 189295) to SP.
 \begin{appendices}
 % \section{The universal bound}
 % \label{app:universalBound}
-% We briefly review the universal bound \citep[section 1.4]{Royall1997} for Bayes
+% We briefly review the universal bound \citep[Section 1.4]{Royall1997} for Bayes
 % factors. Let $0 < k < 1$ and $\mathcal{X}_k = \left\{x :
 %   \BF_{01}(x) %= \frac{f(x\given\h{0})}{f(x\given\h{1})}
 %   \leq k \right\}$ so that the probability for observing misleading evidence

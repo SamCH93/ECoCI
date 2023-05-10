@@ -30,11 +30,13 @@ clean:
 	$(FILE).out $(FILE).brf $(FILE).synctex.gz \
 	$(FILE)Changes.aux  $(FILE)Changes.blg  $(FILE)Changes.log \
 	$(FILE)Changes.tex  $(FILE)Changes.bbl $(FILE)Changes.out $(FILE)Changes.brf \
-	$(FILE)Changes.tex $(FILE)Changes.synctex.gz; \
+	$(FILE)Changes.synctex.gz; \
 	rm -r ./figure/
 
 texdiff: tex old/$(FILE).tex old/ld.cfg
-	latexdiff -c old/ld.cfg old/$(FILE).tex  $(FILE).tex > $(FILE)Changes.tex
+	latexdiff -c old/ld.cfg old/$(FILE).tex $(FILE).tex	> $(FILE)Changes.tex
+	# this removes the old version
+	sed -i 's/\\providecommand{\\DIFdel}\[1\]{.*/\\providecommand{\\DIFdel}\[1\]{}/' $(FILE)Changes.tex
 	-pdflatex $(FILE)Changes
 	-bibtex $(FILE)Changes
 	-pdflatex $(FILE)Changes
