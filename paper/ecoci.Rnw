@@ -822,13 +822,13 @@ Another aspect in which the priors can be compared is the highest support level
 $k$ for which the resulting support intervals are non-empty
 (Figure~\ref{fig:priorComparison} bottom). We see that for the same sample size
 $n$, the highest support levels from the normal and local normal priors are
-similar and show the same growth rates, while the highest support level from the
-nonlocal moment prior is higher and grows much faster. This is expected because
-nonlocal priors are designed to produce Bayes factors with faster accumulation
-of evidence for the null hypothesis. Thus, although nonlocal moment priors
-result in wider support intervals than the other priors, for small sample sizes
-they may be the only type of prior that can produce a support interval at, say,
-Jeffreys's strong evidence level $k = 10$.
+similar and show the same growth rates. In contrast, the highest support level
+from the nonlocal moment prior is higher and grows much faster. This is expected
+because nonlocal priors are designed to produce Bayes factors with faster
+accumulation of evidence for the null hypothesis. Thus, although nonlocal moment
+priors result in wider support intervals than the other priors, for small sample
+sizes they may be the only type of prior that can produce a support interval at,
+say, Jeffreys's strong evidence level $k = 10$.
 
 
 \section{Support intervals based on Bayes factor bounds}
