@@ -50,7 +50,6 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
   \affiliation \\
   E-mail: \href{mailto:\mail}{\mail}
 }
-
 \date{\today} %don't forget to hard-code date when submitting to arXiv!
 
 %% hyperref options
@@ -82,11 +81,11 @@ Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 \begin{document}
 \maketitle
 
-%% disclaimer that a preprint
-\begin{center}
-  \vspace{-2em}
-  {\color{red}This is a preprint which has not yet been peer reviewed.}
-\end{center}
+% %% disclaimer that a preprint
+% \begin{center}
+%   \vspace{-2em}
+%   {\color{red}This is a preprint which has not yet been peer reviewed.}
+% \end{center}
 
 %% Abstract
 %% -----------------------------------------------------------------------------
@@ -1613,8 +1612,8 @@ out of data.
 The point estimate and 95\% confidence interval of the adjusted log hazard ratio
 were extracted from the abstract of \citet{RECOVERY2021}. All analyses were
 conducted in the R programming language version
-\Sexpr{paste(version$major, version$minor, sep = ".")}. Code and data for
-reproducing the results in this manuscript are available at
+\Sexpr{paste(version$major, version$minor, sep = ".")} \citep{R}. Code and data
+for reproducing the results in this manuscript are available at
 %\url{https://github.com/XXXX}.
 \url{https://github.com/SamCH93/ECoCI}. A snapshot of the GitHub repository at
 the time of writing this article is archived at
@@ -1694,6 +1693,9 @@ plot(si10)
 @
 
 \end{appendices}
+
+\section*{Conflict of interest}
+The authors report that there are no conflicts of interest to declare.
 
 
 %% Bibliography

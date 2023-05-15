@@ -24,6 +24,10 @@ pdf2:
 	pdflatex $(FILE)
 	pdflatex $(FILE)
 
+## get R code
+code: $(FILE).Rnw
+	Rscript -e "knitr::purl('$(FILE).Rnw')" --vanilla
+
 ## clean
 clean:
 	rm $(FILE).aux  $(FILE).blg  $(FILE).log  $(FILE).tex  $(FILE).bbl \
