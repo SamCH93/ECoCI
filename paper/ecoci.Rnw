@@ -302,6 +302,8 @@ plot <- ggplot(data = plotDF, aes(x = logHR, y = BF)) +
     theme_bw()
 plot +
     theme(panel.grid.minor = element_blank())
+## ggsave(filename = "figure1.pdf", width = 9, height = 3.5)
+## system(command = "convert -density 320 figure1.pdf figure1.png")
 @
 
 \caption{The RECOVERY trial \citep{RECOVERY2021} found that dexamethasone
@@ -428,7 +430,7 @@ $\that$, so that an approximate normal likelihood
 $\that \given \theta \sim \Nor(\theta, \sigma^{2})$ is justifiable. For example,
 $\that$ could be an estimated regression coefficient from a generalized linear
 model and $\sigma$ its standard error. In many simple settings, the standard
-error is of the form $\sigma = \lambda/\sqrt{n}$, where $\lambda^2$ is the
+error is of the form $\sigma = \lambda/\surd{n}$, where $\lambda^2$ is the
 variance corresponding to one effective unit and $n$ is the effective sample
 size, for example, the number of measurements or the number of events
 \citep[Section 2.4]{Spiegelhalter2004}, see also \citet{Berger2013} for a
@@ -437,7 +439,7 @@ data. An approximate $(1 - \alpha)100\%$~confidence interval for $\theta$ is
 given by
 \begin{align}
     \label{eq:ci}
-    \that \pm \sigma \times \Phi^{-1}(1 - \alpha/2)
+  \that \pm \sigma \times \Phi^{-1}(1 - \alpha/2)
 \end{align}
 with $\Phi^{-1}(\cdot)$ the quantile function of the standard normal
 distribution. The confidence level $(1 - \alpha)100\%$ represents the long run
@@ -513,8 +515,8 @@ null hypothesis. Finally, centering the prior around the parameter estimate
 ($\mu_\theta = \that$) and setting the prior variance equal to the variance of
 one effective observation ($\sigma_\theta^2 = n \times \sigma^2$ with $n$ the
 effective sample size), produces the support interval for Jeffreys's approximate
-Bayes factor \citep{Wagenmakers2022} which is equal to well-known approximation
-of the Bayes factor based on the Bayesian information criterion
+Bayes factor \citep{Wagenmakers2022} which is equal to the well-known
+approximation of the Bayes factor based on the Bayesian information criterion
 \citep{Raftery1999}. In this case, the standard error multiplier has a
 particularly simple form ${\mbox{M} = \surd\{\log(1 + n) - 2 \log k\}}$, showing
 that at least $n \geq k^2 - 1$ effective observations are required for the
@@ -586,19 +588,14 @@ lArg <- uniroot(f = rootFun, interval = c(0, exp(1)))$root
 
 \subsection{Nonlocal normal moment prior under the alternative}
 \label{sec:nonlocal}
-Another attractive class of priors for $\theta$ under the alternative is given
-by so-called \emph{nonlocal priors}. These priors are characterized by having zero
-density at the null value $\theta_0$, thereby leading to a faster accumulation
-of evidence than local priors when the null hypothesis is actually true
-\citep{Johnson2010}. One popular type of nonlocal priors is given by
-\emph{normal moment priors} $\theta \sim \mathrm{NM}(\theta_0, \sigma_\theta)$,
-with symmetry point $\theta_0$ and spread $\sigma_\theta$ which have density
-${f(\theta \given \theta_0, \sigma_\theta^2) = \Nor(\theta \, ; \, \theta_0, \sigma_\theta^2) \times (\theta - \theta_0)^{2}/\sigma_\theta^2}$
-where $\Nor(\cdot \, ; \, \theta_0, \sigma_\theta^2)$ denotes the density
-function of a normal distribution with mean $\theta_0$ and variance
-$\sigma_\theta^2$. The Bayes factor employing a prior
-$\theta \given \h{1} \sim \mathrm{NM}(\theta_0, \sigma_\theta^2)$ is then given
-by
+Another attractive class of priors for $\theta$ under the alternative is given by so-called \emph{nonlocal priors}. These priors are characterized by having zero density at the null value $\theta_0$, thereby leading to a faster accumulation of evidence than local priors when the null hypothesis is actually true \citep{Johnson2010}. One popular type of nonlocal priors is given by \emph{normal moment priors} $\theta
+\sim \mathrm{NM}(\theta_0,
+\sigma_\theta)$, with symmetry point $\theta_0$ and spread $\sigma_\theta$ which have density ${f(\theta
+  \given \theta_0, \sigma_\theta) = \Nor(\theta \, ; \, \theta_0,
+  \sigma_\theta^2) \times (\theta -
+  \theta_0)^{2}/\sigma_\theta^2}$ where $\Nor(\cdot \, ; \, \theta_0,
+\sigma_\theta^2)$ denotes the density function of a normal distribution with mean $\theta_0$ and variance $\sigma_\theta^2$. The Bayes factor employing a prior $\theta
+\given \h{1} \sim \mathrm{NM}(\theta_0, \sigma_\theta)$ is then given by
 % %% uncomment for short equation
 % \begin{align*}
 %   \BF_{01}(\that ; \theta_0)
@@ -614,7 +611,7 @@ by
   \BF_{01}(\that ; \theta_0)
   = \left(1 + \frac{\sigma_\theta^2}{\sigma^2}\right)^{3/2} \,
   \exp\left\{-\frac{1}{2} \, \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/\sigma_\theta^2)} \right\}
-  \left(1 + \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/\sigma_\theta^2)}\right)^{-1}
+  \left\{1 + \frac{(\that - \theta_0)^2}{\sigma^2(1 + \sigma^2/\sigma_\theta^2)}\right\}^{-1}
 \end{align*}
 from which the corresponding $k$ support interval can be derived to be
 % %% uncomment for short equation
@@ -640,9 +637,9 @@ for $x \in [-1/e,\infty)$. For $x \geq
 0)$, the function has two branches: $\lw{0}(x) > -1$ for all $x \in (-1/e,
 0)$ termed the principal branch, and $\lw{-1}(x) < -1$ for all $x \in (-1/e,
 0)$, see \citet{Corless1996} for more details. It is possible that the support interval~\eqref{eq:sinonlocal} is empty, as for the other two types of support intervals. This happens when the Lambert W term is smaller than one half so that the square root is undefined. Since $\lw{0}(\Sexpr{round(lArg,
-  2)}) \approx 1/2$, this situations occurs when $(1 +
+  2)}) \approx 1/2$, this situations occurs when \mbox{$(1 +
 \sigma_\theta^2/\sigma^2)^{3/2} < \Sexpr{round(lArg, 2)} \times
-2k\sqrt{e}$, meaning that the standard error $\sigma$ has to be sufficiently small relative to the prior spread parameter $\sigma_\theta$ and the support level $k$, so that the interval is non-empty.
+2k\sqrt{e}$}, meaning that the standard error $\sigma$ has to be sufficiently small relative to the prior spread parameter $\sigma_\theta$ and the support level $k$, so that the interval is non-empty.
 
 \begin{figure}[!htb]
 << "compare-priors-growth", fig.height = 5 >>=
@@ -782,17 +779,19 @@ plotB <- ggplot(data = plotDF2, aes(x = n, y = kMax, color = type, linetype = ty
     theme_bw() +
     theme(panel.grid.minor = element_blank())
 ggpubr::ggarrange(plotA, plotB, ncol = 1, common.legend = TRUE, align = "hv")
+## ggsave(filename = "figure2.pdf", width = 9, height = 5)
+## system(command = "convert -density 320 figure2.pdf figure2.png")
 @
 
 \caption{Comparison of prior distributions for the parameter $\theta$ under the
-  alternative $\h{1}$ in terms of resulting support interval width and highest
-  level for which it is non-empty. A data model
+  alternative $\h{1}$ in terms of the resulting support interval width and the
+  highest level for which it is non-empty. A data model
   \mbox{$\that \given \theta \sim \Nor(\theta, \lambda^{2}/n = \Sexpr{unitvar}/n)$}
   is assumed in all cases. The prior scale/spread parameter is set to
   $\sigma_{\theta} = \Sexpr{sqrt(unitvar)}$. The normal prior (correct mean) has
   a mean equal to the parameter estimate $\that$, while the normal prior (wrong
-  mean) has a mean one standard deviation $\lambda = \Sexpr{sqrt(unitvar)}$
-  away from $\that$.}
+  mean) has a mean one standard deviation $\lambda = \Sexpr{sqrt(unitvar)}$ away
+  from $\that$.}
 \label{fig:priorComparison}
 \end{figure}
 
@@ -970,7 +969,7 @@ data are summarized through a $p$-value. The idea is that under the null
 hypothesis $\h{0}\colon \theta = \theta_0$, a $p$-value should be uniformly
 distributed, whereas under the alternative it should have a monotonically
 decreasing density characterized by the class of Beta($\xi, 1$) distributions
-(with $\xi \geq 1$). Choosing $\xi$ such that the marginal likelihood of the
+(with $\xi \leq 1$). Choosing $\xi$ such that the marginal likelihood of the
 data under $\h{1}$ is maximized, leads to well-known ``$-ep \log p$'' minimum
 Bayes factor
 \begin{align}
@@ -1096,6 +1095,8 @@ ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type, linetype = typ
     theme_bw() +
     theme(legend.position = "top", panel.grid.minor = element_blank(),
           legend.text = element_text(size = 7.5))
+## ggsave(filename = "figure3.pdf", width = 9, height = 3.3)
+## system(command = "convert -density 320 figure3.pdf figure3.png")
 @
 \caption{Mapping between confidence level $(1 - \alpha)100\%$ and minimum
   support level $k$ for different types of minimum support intervals.}
@@ -1248,6 +1249,8 @@ plotA +
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           axis.text.y = element_text(hjust = 0, color = "black"))
+## ggsave(filename = "figure4.pdf", width = 9, height = 3.25)
+## system(command = "convert -density 320 figure4.pdf figure4.png")
 @
 
 \caption{Different support intervals for the data from the RECOVERY trial.
@@ -1354,8 +1357,8 @@ non-negative, \ie{} it must hold that
 The sample size $n$ can now be determined such that the standard error $\sigma$
 is small enough for~\eqref{eq:existence} to hold. The resulting sample size then
 guarantees that parameter values with the desired level of support will be
-identified. In general, this needs to be done numerically, but for the Jeffrey's
-approximate Bayes factor prior ($\mu_{\theta} = \that$ and
+identified. In general, this needs to be done numerically, but for the
+Jeffreys's approximate Bayes factor prior ($\mu_{\theta} = \that$ and
 $\sigma_\theta^2 = n \sigma^2$), the simple expression $n \geq k^2 - 1$
 mentioned earlier exists. For instance, if we want a $k = 10$ support interval
 to be non-empty, we must take at least $10^2 - 1 = 99$ samples.
@@ -1385,8 +1388,8 @@ value to be defined, meaning that the possible width is limited by
 $\ell \leq (4\lambda^2)/k^2$, (ii) since the argument to $\mbox{W}(\cdot)$ is
 negative, there are always two solutions given by the two real branches of the
 Lambert $\mbox{W}$ function, if any exist at all. For instance, for a standard
-error of $\sigma^{2} = \lambda^{2}/n$ with
-$\lambda^{2} = \Sexpr{round(lambda^2, 2)}$, a support level
+error of $\sigma = \lambda/\surd{n}$ with
+$\lambda = \Sexpr{round(lambda, 2)}$, a support level
 $k = \Sexpr{formatBF(k)}$, and a desired width $\ell = \Sexpr{round(w, 2)}$,
 equation~\eqref{eq:nw} leads to the sample sizes $n_1 = \Sexpr{ceiling(n[1])}$
 and $n_2 = \Sexpr{ceiling(n[2])}$ (when rounded to the next larger integer).
@@ -1433,7 +1436,7 @@ bounded by
 where the first equality follows from the definition of a $k$ support
 set~\eqref{eq:ss}, whereas the inequality follows from the universal
 bound~\eqref{eq:ubound}. This shows that a $k$ support set with $k < 1$ is also
-a valid $(1 - k)100\%$ confidence sets, even under sequential analyses with
+a valid $(1 - k)100\%$ confidence set, even under sequential analyses with
 optional stopping, so that computing support intervals based on accumulating
 data leads to a $(1 - k)100\%$ confidence sequence \citep{Lai1976, Howard2021}.
  Of course, the coverage bound rests on the assumption that
@@ -1690,6 +1693,14 @@ si10 <- ciCalibrate(ci = logHRci, ciLevel = 0.95, siLevel = 10,
 si10
 ## plot Bayes factor function with support interval
 plot(si10)
+@
+
+<< >>=
+## pdf(file = "figure5.pdf", width = 9, height = 4)
+## plot(si10)
+## dev.off()
+## plot(si10)
+## system(command = "convert -density 320 figure5.pdf figure5.png")
 @
 
 \end{appendices}
