@@ -1601,13 +1601,13 @@ typically violate assumptions of the underlying statistical model
 % overconfident error rate statements from $p$-values and confidence intervals
 % are overconfident
 \citep{Amrhein2019, Shafer2021}. In fact, even one of the best known proponents
-of $p$-values -- R.A. Fisher -- noted ``For all purposes, and more particularly
-for the \emph{communication} of the relevant evidence supplied by a body of
-data, the values of the Mathematical Likelihood are better fitted to analyse,
-summarize, and communicate statistical evidence of types too weak to supply true
-probability statements'' \citep[p. 70]{Fisher1956} clearly recognizing the
-importance of inferential tools based on relative likelihood for making sense
-out of data.
+of $p$-values --- R.A. Fisher --- noted ``For all purposes, and more
+particularly for the \emph{communication} of the relevant evidence supplied by a
+body of data, the values of the Mathematical Likelihood are better fitted to
+analyse, summarize, and communicate statistical evidence of types too weak to
+supply true probability statements'' \citep[p. 70]{Fisher1956} clearly
+recognizing the importance of inferential tools based on relative likelihood for
+making sense out of data.
 
 
 

@@ -1,10 +1,10 @@
 # Evidential Calibration of Confidence Intervals
 
-This repository contains code and data related to the preprint
+This repository contains code and data related to
 
-Pawel, S., Ly, A., and Wagenmakers, E.-J. (2022). Evidential Calibration of
-Confidence Intervals.
-[doi:10.48550/arXiv.2206.12290](https://doi.org/10.48550/arXiv.2206.12290)
+Pawel, S., Ly, A., and Wagenmakers, E.-J. (2023). Evidential Calibration of
+Confidence Intervals. *The American Statistician*.
+[doi:10.1080/00031305.2023.2216239](https://doi.org/10.1080/00031305.2023.2216239)
 
 ## Reproducing the results
 

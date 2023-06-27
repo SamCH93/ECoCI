@@ -129,6 +129,8 @@ plot <- ggplot(data = plotDF, aes(x = logHR, y = BF)) +
     theme_bw()
 plot +
     theme(panel.grid.minor = element_blank())
+## ggsave(filename = "figure1.pdf", width = 9, height = 3.5)
+## system(command = "convert -density 320 figure1.pdf figure1.png")
 
 
 ## ----"existence-nonlocal-SI"--------------------------------------------------
@@ -274,6 +276,8 @@ plotB <- ggplot(data = plotDF2, aes(x = n, y = kMax, color = type, linetype = ty
     theme_bw() +
     theme(panel.grid.minor = element_blank())
 ggpubr::ggarrange(plotA, plotB, ncol = 1, common.legend = TRUE, align = "hv")
+## ggsave(filename = "figure2.pdf", width = 9, height = 5)
+## system(command = "convert -density 320 figure2.pdf figure2.png")
 
 
 ## ----"mapping-conf-minsupport"------------------------------------------------
@@ -354,6 +358,8 @@ ggplot(data = plotDF, aes(x = conflevel*100, y = k, color = type, linetype = typ
     theme_bw() +
     theme(legend.position = "top", panel.grid.minor = element_blank(),
           legend.text = element_text(size = 7.5))
+## ggsave(filename = "figure3.pdf", width = 9, height = 3.3)
+## system(command = "convert -density 320 figure3.pdf figure3.png")
 
 
 ## ----"eliciation-spread-nonlocal"---------------------------------------------
@@ -479,6 +485,8 @@ plotA +
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           axis.text.y = element_text(hjust = 0, color = "black"))
+## ggsave(filename = "figure4.pdf", width = 9, height = 3.25)
+## system(command = "convert -density 320 figure4.pdf figure4.png")
 
 
 ## ----"sample-size-based-on-support"-------------------------------------------
@@ -510,6 +518,14 @@ si10 <- ciCalibrate(ci = logHRci, ciLevel = 0.95, siLevel = 10,
 si10
 ## plot Bayes factor function with support interval
 plot(si10)
+
+
+## -----------------------------------------------------------------------------
+## pdf(file = "figure5.pdf", width = 9, height = 4)
+## plot(si10)
+## dev.off()
+## plot(si10)
+## system(command = "convert -density 320 figure5.pdf figure5.png")
 
 
 
